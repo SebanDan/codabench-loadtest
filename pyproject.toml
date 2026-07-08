@@ -40,3 +40,43 @@ lint = [
 typing = [
     "pyright>=1.1.410",
 ]
+
+
+# -----------------------------------------------
+# Development tools
+# -----------------------------------------------
+
+[tool.setuptools]
+py-modules = []
+
+[tool.uv]
+package = true
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+extend-exclude = '''
+(
+  | \.venv
+)
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.pyright]
+pythonVersion = "3.13"
+typeCheckingMode = "basic"
+
+[tool.bandit]
+exclude_dirs = [".venv"]
+skips = []
+targets = []
+
+[tool.coverage.run]
+branch = true

@@ -70,3 +70,5 @@ pip-wheel-metadata/
 .coverage.*
 coverage.xml
 htmlcov/
+
+download/

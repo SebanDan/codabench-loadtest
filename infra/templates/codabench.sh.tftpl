@@ -1,0 +1,24 @@
+#!/bin/bash
+set -euxo pipefail
+exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+dnf update -y
+dnf install -y git docker
+
+if ! command -v curl >/dev/null 2>&1; then
+  dnf install -y curl-minimal
+fi
+
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+  https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+systemctl enable --now docker
+usermod -aG docker ec2-user || true
+
+docker --version
+docker compose version
+git --version
+
+echo "Codabench host bootstrap complete. Install application manually from GitHub repository."

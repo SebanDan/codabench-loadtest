@@ -1,0 +1,94 @@
+#!/bin/bash
+set -euxo pipefail
+exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+dnf update -y
+dnf install -y nginx
+
+cat >/etc/nginx/conf.d/minio.conf <<EOF
+upstream minio_backend {
+${nginx_upstream_servers}
+}
+
+upstream minio_console_backend {
+${nginx_console_upstream_servers}
+}
+
+server {
+  listen 9000;
+
+  # MinIO load balancing requirement for large uploads.
+  client_max_body_size 0;
+
+  location = /storage {
+    return 301 /storage/;
+  }
+
+  location /storage/ {
+    rewrite ^/storage/?(.*)$ /\$1 break;
+    proxy_pass http://minio_backend;
+    proxy_http_version 1.1;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_set_header Connection "";
+    proxy_set_header Host \$http_host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location / {
+    proxy_pass http://minio_backend;
+    proxy_http_version 1.1;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_set_header Connection "";
+    proxy_set_header Host \$http_host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+}
+
+server {
+  listen 9001;
+
+  location = /minio-console {
+    return 301 /minio-console/;
+  }
+
+  location /minio-console/ {
+    rewrite ^/minio-console/?(.*)$ /\$1 break;
+    proxy_pass http://minio_console_backend;
+    proxy_http_version 1.1;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_set_header Accept-Encoding "";
+    proxy_set_header Host \$http_host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection "upgrade";
+    sub_filter_once on;
+    sub_filter_types text/html;
+    sub_filter '<base href="/"/>' '<base href="/minio-console/"/>';
+  }
+
+  location / {
+    proxy_pass http://minio_console_backend;
+    proxy_http_version 1.1;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_set_header Host \$http_host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection "upgrade";
+  }
+}
+EOF
+
+nginx -t
+systemctl enable --now nginx

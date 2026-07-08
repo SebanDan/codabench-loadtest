@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Repository for load testing the codabench platform."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "boto3>=1.39.0",
+]
 
 
 [dependency-groups]

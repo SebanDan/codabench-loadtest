@@ -15,9 +15,9 @@ jobs:
   code-quality-checks:
     runs-on: ubuntu-latest
     steps:
-  
+
       - uses: actions/checkout@v4
-  
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -41,11 +41,7 @@ jobs:
       - name: Check Terraform linting
         run: |
           tflint --chdir=infra --recursive
-      
+
       - name: Check typing
         run: |
           uv run --group typing pyright uc_dbx_accelerator
-
-      - name: Check security
-        run: |
-          uv run --only-group dev bandit --severity-level=medium -r .

@@ -1,0 +1,82 @@
+#!/bin/bash
+set -euxo pipefail
+exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+dnf update -y
+
+if ! command -v curl >/dev/null 2>&1; then
+	dnf install -y curl-minimal
+fi
+
+if ! command -v mkfs.ext4 >/dev/null 2>&1; then
+	dnf install -y e2fsprogs
+fi
+
+mkdir -p /data1 /data2
+mkdir -p /var/lib/minio
+
+# Discover and prepare non-root EBS data disks for MinIO.
+ROOT_SOURCE=$(findmnt -n -o SOURCE /)
+ROOT_PARENT=$(lsblk -no PKNAME "$ROOT_SOURCE" 2>/dev/null || true)
+mapfile -t DATA_DISKS < <(lsblk -dn -o NAME,TYPE | awk '$2=="disk" {print $1}' | grep -v "^$${ROOT_PARENT}$" | sort)
+
+if [ "$${#DATA_DISKS[@]}" -lt 2 ]; then
+	echo "Expected at least 2 non-root data disks, found $${#DATA_DISKS[@]}"
+	lsblk
+	exit 1
+fi
+
+for i in 1 2; do
+	disk="/dev/$${DATA_DISKS[$((i - 1))]}"
+	mount_point="/data$${i}"
+
+	if ! blkid "$disk" >/dev/null 2>&1; then
+		mkfs.ext4 -F "$disk"
+	fi
+
+	uuid=$(blkid -s UUID -o value "$disk")
+	if ! grep -q "UUID=$${uuid}" /etc/fstab; then
+		echo "UUID=$${uuid} $${mount_point} ext4 defaults,nofail 0 2" >> /etc/fstab
+	fi
+done
+
+mount -a
+
+# MinIO system user for least-privileged service execution.
+id minio-user >/dev/null 2>&1 || useradd --system --home /var/lib/minio --shell /sbin/nologin minio-user
+
+curl -fsSL -o /usr/local/bin/minio https://dl.min.io/server/minio/release/linux-amd64/minio
+chmod +x /usr/local/bin/minio
+
+cat >/etc/default/minio <<EOF
+MINIO_ROOT_USER=${minio_access_key}
+MINIO_ROOT_PASSWORD=${minio_secret_key}
+EOF
+
+cat >/etc/systemd/system/minio.service <<EOF
+[Unit]
+Description=MinIO Distributed Object Storage
+Documentation=https://min.io/docs/minio/linux/index.html
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=minio-user
+Group=minio-user
+WorkingDirectory=/var/lib/minio
+EnvironmentFile=/etc/default/minio
+ExecStart=/usr/local/bin/minio server --console-address :9001 ${minio_cluster_targets}
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+TasksMax=infinity
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+chown -R minio-user:minio-user /data1 /data2 /var/lib/minio
+
+systemctl daemon-reload
+systemctl enable --now minio

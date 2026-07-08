@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+     - main
+  push:
+    branches:
+      - main
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  code-quality-checks:
+    runs-on: ubuntu-latest
+    steps:
+  
+      - uses: actions/checkout@v4
+  
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Check Formatting
+        run: |
+          uv run --only-group format black --check .
+          uv run --only-group format isort --check .
+
+      - name: Check linting
+        run: |
+          uv run --only-group lint ruff check .
+
+      - name: Check Terraform linting
+        run: |
+          tflint --chdir=infra --recursive
+      
+      - name: Check typing
+        run: |
+          uv run --group typing pyright uc_dbx_accelerator
+
+      - name: Check security
+        run: |
+          uv run --only-group dev bandit --severity-level=medium -r .

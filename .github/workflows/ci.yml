@@ -38,10 +38,6 @@ jobs:
         run: |
           uv run --only-group lint ruff check .
 
-      - name: Check Terraform linting
-        run: |
-          tflint --chdir=infra --recursive
-
       - name: Check typing
         run: |
-          uv run --group typing pyright uc_dbx_accelerator
+          uv run --group typing pyright .

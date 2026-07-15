@@ -73,6 +73,23 @@ resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy" "codabench_s3_read" {
+  name = "${local.name_prefix}-codabench-s3-read"
+  role = aws_iam_role.ssm_instance_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:GetObject", "s3:ListBucket"]
+      Resource = [
+        module.s3_deploy.bucket_arn,
+        "${module.s3_deploy.bucket_arn}/*",
+      ]
+    }]
+  })
+}
+
 resource "aws_iam_instance_profile" "ssm_instance_profile" {
   name = "${local.name_prefix}-ssm-instance-profile"
   role = aws_iam_role.ssm_instance_role.name
@@ -91,6 +108,15 @@ module "vpc" {
   private_subnet_cidrs = var.private_subnet_cidrs
   azs                  = var.availability_zones
   tags                 = local.common_tags
+}
+
+module "s3_deploy" {
+  source = "./modules/s3_deploy"
+
+  name_prefix = local.name_prefix
+  source_dir  = "${path.module}/codabench"
+  s3_prefix   = local.name_prefix
+  tags        = local.common_tags
 }
 
 module "security_groups" {
@@ -200,19 +226,12 @@ module "codabench" {
   private_ip                = local.codabench_private_ip
   root_volume_size          = 200
   user_data = templatefile("${path.module}/templates/codabench.sh.tftpl", {
-    broker_url        = local.codabench_broker_url
-    rabbitmq_user     = var.rabbitmq_user
-    rabbitmq_password = var.rabbitmq_password
-    rabbitmq_image    = var.rabbitmq_image
-    minio_endpoint    = local.minio_endpoint
-    minio_access_key  = var.minio_access_key
-    minio_secret_key  = var.minio_secret_key
-    codabench_image   = var.codabench_image
-    codabench_port    = var.codabench_port
+    codabench_deploy_bucket = module.s3_deploy.bucket_name
+    codabench_deploy_prefix = local.name_prefix
   })
   tags = local.common_tags
 
-  depends_on = [module.nginx_minio]
+  depends_on = [module.nginx_minio, module.s3_deploy]
 }
 
 module "workers" {

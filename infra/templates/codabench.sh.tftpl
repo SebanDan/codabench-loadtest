@@ -9,16 +9,25 @@ if ! command -v curl >/dev/null 2>&1; then
   dnf install -y curl-minimal
 fi
 
-mkdir -p /usr/local/lib/docker/cli-plugins
-curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
-  https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64
-chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+if ! docker compose version >/dev/null 2>&1; then
+  mkdir -p /usr/local/lib/docker/cli-plugins
+  curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+    https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64
+  chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+fi
 
 systemctl enable --now docker
 usermod -aG docker ec2-user || true
 
-docker --version
-docker compose version
-git --version
+# Copie du repo Codabench depuis S3
+mkdir -p /opt/codabench
+aws s3 sync "s3://${codabench_deploy_bucket}/${codabench_deploy_prefix}/" /opt/codabench/ \
+  --exclude ".git/*"
 
-echo "Codabench host bootstrap complete. Install application manually from GitHub repository."
+cd /opt/codabench
+mkdir -p var/logs var/rabbit var/postgres backups
+
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+
+echo "Codabench stack deployed."

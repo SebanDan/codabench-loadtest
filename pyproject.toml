@@ -5,6 +5,7 @@ description = "Repository for load testing the codabench platform."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "locust>=2.45.0",
 ]
 
 

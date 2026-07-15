@@ -1,3 +1,8 @@
+output "codabench_deploy_bucket" {
+  description = "S3 bucket used to deploy the Codabench source."
+  value       = module.s3_deploy.bucket_name
+}
+
 output "alb_dns" {
   description = "ALB DNS name when ALB is enabled."
   value       = var.enable_alb ? aws_lb.entry[0].dns_name : null

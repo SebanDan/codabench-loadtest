@@ -63,6 +63,9 @@ reports = [
 [tool.setuptools]
 packages = ["codabench_loadtest"]
 
+[tool.setuptools.packages.find]
+include = ["scenarios*"]
+
 [tool.uv]
 package = true
 

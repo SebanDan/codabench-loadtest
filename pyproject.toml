@@ -7,6 +7,8 @@ requires-python = ">=3.13"
 dependencies = [
     "locust>=2.45.0",
     "python-dotenv>=1.2.2",
+    "requests>=2.32.0",
+    "pydantic-settings>=2.9.0",
 ]
 
 [project.scripts]
@@ -45,6 +47,14 @@ typing = [
     "pyright>=1.1.410",
 ]
 
+frontend = [
+    "playwright>=1.52.0",
+]
+
+reports = [
+    "pandas>=2.3.0",
+]
+
 
 # -----------------------------------------------
 # Development tools
@@ -58,7 +68,7 @@ package = true
 
 [tool.black]
 line-length = 88
-target-version = ["py311"]
+target-version = ["py313"]
 extend-exclude = '''
 (
   | \.venv

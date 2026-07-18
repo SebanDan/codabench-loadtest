@@ -72,3 +72,6 @@ coverage.xml
 htmlcov/
 
 download/
+
+.vscode/
+.tours/

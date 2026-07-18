@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 
 from locust import HttpUser, between, task
-from locust.clients import HttpSession
 from locust.exception import StopUser
+from codabench_loadtest.scenarios.utils import authenticate
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
@@ -11,19 +11,11 @@ USERNAME = os.environ.get("CODABENCH_USERNAME", "admin")
 PASSWORD = os.environ.get("CODABENCH_PASSWORD", "12345")
 
 
-def _authenticate(client: HttpSession):
-    response = client.post(
-        "/api/api-token-auth/", json={"username": USERNAME, "password": PASSWORD}
-    )
-    response.raise_for_status()
-    client.headers.update({"Authorization": f"Token {response.json()['token']}"})
-
-
-class CodabenchSmokeUser(HttpUser):
+class SmokeUser(HttpUser):
     wait_time = between(1, 2)
 
     def on_start(self):
-        _authenticate(self.client)
+        authenticate(self.client, USERNAME, PASSWORD)
 
     @task
     def smoke_task(self):
@@ -31,7 +23,7 @@ class CodabenchSmokeUser(HttpUser):
         self.client.get("/api/analytics/users_usage/")
 
 
-class MnistSubmissionUser(HttpUser):
+class ClassicalSubmissionUser(HttpUser):
     """Uploads a code submission to the MNIST competition.
 
     Each iteration reproduces the 4 steps the web UI performs:
@@ -54,7 +46,7 @@ class MnistSubmissionUser(HttpUser):
     )
 
     def on_start(self):
-        _authenticate(self.client)
+        authenticate(self.client, USERNAME, PASSWORD)
 
         if not self.submission_zip.is_file():
             raise StopUser(f"Submission zip not found: {self.submission_zip}")

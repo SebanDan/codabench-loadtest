@@ -3,6 +3,7 @@ from pathlib import Path
 
 from locust import HttpUser, between, task
 from locust.exception import StopUser
+
 from codabench_loadtest.scenarios.utils import authenticate
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"

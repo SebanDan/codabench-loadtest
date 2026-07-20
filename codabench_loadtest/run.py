@@ -7,13 +7,12 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from codabench_loadtest.scenarios import EnvironmentSetup
 
 from dotenv import dotenv_values
 
 ROOT = Path(__file__).resolve().parent.parent
 ENV_DIR = ROOT / ".github" / "env"
-LOCUST_FILE = Path(__file__).resolve().parent / "scenarios" / "main.py"
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -37,7 +36,12 @@ def main() -> int:
     if not host:
         parser.error(f"DJANGO_HOST is not defined in {env_file}")
 
-    cmd = ["locust", "-f", str(LOCUST_FILE), "--host", host, *locust_args]
+
+    environement = EnvironmentSetup(env_file)
+    environement.create_competition()
+    environement.create_user_pool()
+
+    cmd = ["locust", "--host", host, *locust_args]
     print(f"[{args.env}] launching: {' '.join(cmd)}", file=sys.stderr)
     return subprocess.call(cmd, env=env)
 

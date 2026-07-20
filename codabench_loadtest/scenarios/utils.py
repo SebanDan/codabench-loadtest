@@ -1,9 +1,5 @@
 from locust.clients import HttpSession
 
-
-def setup_user(): ...
-
-
 def authenticate(client: HttpSession, username: str, password: str):
     response = client.post(
         "/api/api-token-auth/", json={"username": username, "password": password}

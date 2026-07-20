@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "locust>=2.45.0",
+    "pydantic>=2.13.4",
     "python-dotenv>=1.2.2",
 ]
 
@@ -84,3 +85,9 @@ targets = []
 
 [tool.coverage.run]
 branch = true
+
+[tool.locust]
+locustfile = "codabench_loadtest/scenarios/locustfile.py"
+csv = "reports/report"
+html = "reports/report.html"
+loglevel = "INFO"

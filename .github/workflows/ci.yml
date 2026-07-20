@@ -41,3 +41,7 @@ jobs:
       - name: Check typing
         run: |
           uv run --group typing pyright .
+
+      - name: Unit Tests
+        run: |
+          uv run --group test coverage run --source codabench_loadtest -m pytest tests

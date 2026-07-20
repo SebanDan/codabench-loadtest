@@ -96,6 +96,15 @@ targets = []
 [tool.coverage.run]
 branch = true
 
+[tool.coverage.report]
+fail_under = 1
+ignore_errors = true
+show_missing = true
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
 [tool.locust]
 locustfile = "codabench_loadtest/scenarios/locustfile.py"
 csv = "reports/report"

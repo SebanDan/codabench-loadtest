@@ -8,6 +8,8 @@ dependencies = [
     "locust>=2.45.0",
     "pydantic>=2.13.4",
     "python-dotenv>=1.2.2",
+    "requests>=2.32.0",
+    "pydantic-settings>=2.9.0",
 ]
 
 [project.scripts]
@@ -46,20 +48,28 @@ typing = [
     "pyright>=1.1.410",
 ]
 
+frontend = [
+    "playwright>=1.52.0",
+]
+
+reports = [
+    "pandas>=2.3.0",
+]
+
 
 # -----------------------------------------------
 # Development tools
 # -----------------------------------------------
 
-[tool.setuptools]
-packages = ["codabench_loadtest"]
+[tool.setuptools.packages.find]
+include = ["codabench_loadtest", "scenarios*"]
 
 [tool.uv]
 package = true
 
 [tool.black]
 line-length = 88
-target-version = ["py311"]
+target-version = ["py313"]
 extend-exclude = '''
 (
   | \.venv

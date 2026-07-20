@@ -45,3 +45,4 @@ jobs:
       - name: Unit Tests
         run: |
           uv run --group test coverage run --source codabench_loadtest -m pytest tests
+          uv run --group test coverage report

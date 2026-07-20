@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import requests
-
 from scenarios.common.config import settings
 
 # Submission statuses as returned by the API (Title Case).

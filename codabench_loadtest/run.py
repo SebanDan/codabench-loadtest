@@ -7,12 +7,14 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from codabench_loadtest.scenarios import EnvironmentSetup
 
 from dotenv import dotenv_values
 
+from codabench_loadtest.scenarios import EnvironmentSetup
+
 ROOT = Path(__file__).resolve().parent.parent
 ENV_DIR = ROOT / ".github" / "env"
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -35,7 +37,6 @@ def main() -> int:
     host = env.get("DJANGO_HOST")
     if not host:
         parser.error(f"DJANGO_HOST is not defined in {env_file}")
-
 
     environement = EnvironmentSetup(env_file)
     environement.create_competition()

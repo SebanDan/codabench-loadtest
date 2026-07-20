@@ -58,23 +58,17 @@ class CodabenchClient:
     # --------------------------------------------------------- competitions
 
     def list_competitions(self, **params: Any) -> list[dict[str, Any]]:
-        resp = self.session.get(
-            f"{self.host}/api/competitions/", params=params
-        )
+        resp = self.session.get(f"{self.host}/api/competitions/", params=params)
         resp.raise_for_status()
         return resp.json()["results"]
 
     def list_public_competitions(self, **params: Any) -> list[dict[str, Any]]:
-        resp = self.session.get(
-            f"{self.host}/api/competitions/public/", params=params
-        )
+        resp = self.session.get(f"{self.host}/api/competitions/public/", params=params)
         resp.raise_for_status()
         return resp.json()["results"]
 
     def get_front_page(self) -> dict[str, Any]:
-        resp = self.session.get(
-            f"{self.host}/api/competitions/front_page/"
-        )
+        resp = self.session.get(f"{self.host}/api/competitions/front_page/")
         resp.raise_for_status()
         return resp.json()
 
@@ -89,12 +83,8 @@ class CodabenchClient:
 
     # ---------------------------------------------------------- leaderboards
 
-    def get_leaderboard(
-        self, phase_id: int
-    ) -> dict[str, Any]:
-        resp = self.session.get(
-            f"{self.host}/api/phases/{phase_id}/get_leaderboard/"
-        )
+    def get_leaderboard(self, phase_id: int) -> dict[str, Any]:
+        resp = self.session.get(f"{self.host}/api/phases/{phase_id}/get_leaderboard/")
         resp.raise_for_status()
         return resp.json()
 
@@ -103,9 +93,7 @@ class CodabenchClient:
     def can_make_submission(self, phase_id: int) -> dict[str, Any]:
         self._ensure_auth()
 
-        resp = self.session.get(
-            f"{self.host}/api/can_make_submission/{phase_id}/"
-        )
+        resp = self.session.get(f"{self.host}/api/can_make_submission/{phase_id}/")
         resp.raise_for_status()
         return resp.json()
 
@@ -132,9 +120,7 @@ class CodabenchClient:
         return resp.json()
 
     def get_submission(self, submission_id: int) -> dict[str, Any]:
-        resp = self.session.get(
-            f"{self.host}/api/submissions/{submission_id}/"
-        )
+        resp = self.session.get(f"{self.host}/api/submissions/{submission_id}/")
         resp.raise_for_status()
         return resp.json()
 
@@ -203,8 +189,7 @@ class CodabenchClient:
 
             if time.monotonic() > deadline:
                 raise TimeoutError(
-                    f"Submission {submission_id} still '{state}' "
-                    f"after {timeout}s"
+                    f"Submission {submission_id} still '{state}' " f"after {timeout}s"
                 )
 
             time.sleep(interval)
@@ -221,8 +206,6 @@ class CodabenchClient:
     def list_queues(self, **params: Any) -> list[dict[str, Any]]:
         self._ensure_auth()
 
-        resp = self.session.get(
-            f"{self.host}/api/queues/", params=params
-        )
+        resp = self.session.get(f"{self.host}/api/queues/", params=params)
         resp.raise_for_status()
         return resp.json()["results"]

@@ -60,11 +60,8 @@ reports = [
 # Development tools
 # -----------------------------------------------
 
-[tool.setuptools]
-packages = ["codabench_loadtest"]
-
 [tool.setuptools.packages.find]
-include = ["scenarios*"]
+include = ["codabench_loadtest", "scenarios*"]
 
 [tool.uv]
 package = true

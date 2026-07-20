@@ -1,6 +1,6 @@
 import pytest
 
-from scenarios.common.config import Settings, _PROJECT_ROOT
+from scenarios.common.config import _PROJECT_ROOT, Settings
 
 
 def test_project_root_contains_env_example():

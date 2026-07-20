@@ -166,10 +166,8 @@ class CodabenchClient:
             timeout=timeout,
         )
 
-    def delete_competition(self, competition_id: int | None) -> dict[str, Any]:
+    def delete_competition(self, competition_id: int) -> dict[str, Any]:
         self._ensure_auth()
-        if competition_id is None:
-            raise ValueError("competition_id must be provided")
         resp = self.session.delete(f"{self.host}/api/competitions/{competition_id}/")
         resp.raise_for_status()
         return {"status_code": resp.status_code}

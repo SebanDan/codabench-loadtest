@@ -49,7 +49,9 @@ def main() -> int:
     print(f"[{args.env}] launching: {' '.join(cmd)}", file=sys.stderr)
     subprocess.call(cmd, env=env)
 
-    environment.codabench_client.delete_competition(int(competition_id))
+    if competition_id is not None:
+        environment.codabench_client.delete_competition(int(competition_id))
+    return 0
 
 
 if __name__ == "__main__":

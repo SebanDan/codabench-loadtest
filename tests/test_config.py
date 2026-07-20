@@ -3,8 +3,8 @@ import pytest
 from codabench_loadtest.scenarios.common.config import _PROJECT_ROOT, Settings
 
 
-def test_project_root_contains_env_example():
-    assert (_PROJECT_ROOT / ".env.example").is_file(), (
+def test_project_root_contains_locust_config():
+    assert (_PROJECT_ROOT / ".github" / "env" / ".env.example").is_file(), (
         f"_PROJECT_ROOT ({_PROJECT_ROOT}) does not contain .env.example — "
         "the path calculation in config.py is broken"
     )

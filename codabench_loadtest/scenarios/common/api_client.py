@@ -5,7 +5,9 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from scenarios.common.config import settings
+
+from codabench_loadtest.scenarios.common.config import Settings
+from codabench_loadtest.scenarios.utils import validate_competition_bundle
 
 # Submission statuses as returned by the API (Title Case).
 SUBMITTING = "Submitting"
@@ -23,17 +25,20 @@ TERMINAL_STATUSES = frozenset({FINISHED, FAILED, CANCELLED})
 class CodabenchClient:
     """Reusable client for the Codabench REST API."""
 
-    def __init__(self, host: str | None = None) -> None:
-        self.host = (host or settings.host).rstrip("/")
-        self.session = requests.Session()
+    def __init__(
+        self, config: Settings, custom_session: requests.Session | None = None
+    ) -> None:
+        self.host = config.host.rstrip("/")
+        self.session = custom_session or requests.Session()
         self._authenticated = False
+        self.settings = config
 
     # ------------------------------------------------------------------ auth
 
     def login(self) -> None:
-        settings.require_auth()
+        self.settings.require_auth()
 
-        token = settings.api_token.get_secret_value()
+        token = self.settings.api_token.get_secret_value()
         if token:
             self.session.headers["Authorization"] = f"Token {token}"
             self._authenticated = True
@@ -42,8 +47,8 @@ class CodabenchClient:
         resp = self.session.post(
             f"{self.host}/api/api-token-auth/",
             json={
-                "username": settings.username,
-                "password": settings.password.get_secret_value(),
+                "username": self.settings.username,
+                "password": self.settings.password.get_secret_value(),
             },
         )
         resp.raise_for_status()
@@ -54,7 +59,47 @@ class CodabenchClient:
         if not self._authenticated:
             self.login()
 
-    # --------------------------------------------------------- competitions
+    def create_user(self, username: str, password: str) -> None:
+        """Create an active Codabench user via the Django admin.
+
+        Uses a dedicated session so the admin's session/CSRF cookies don't
+        leak into the token-authenticated API session (which would make DRF
+        enforce CSRF on subsequent API writes).
+        """
+        admin = requests.Session()
+
+        # Log into the admin to get a session cookie (the DRF token doesn't
+        # authenticate the admin site).
+        login_url = f"{self.host}/admin/login/"
+        admin.get(login_url)  # sets the csrftoken cookie
+        admin.post(
+            login_url,
+            data={
+                "username": self.settings.username,
+                "password": self.settings.password.get_secret_value(),
+                "csrfmiddlewaretoken": admin.cookies["csrftoken"],
+                "next": "/admin/",
+            },
+            headers={"Referer": login_url},
+        ).raise_for_status()
+
+        add_url = f"{self.host}/admin/profiles/user/add/"
+        admin.get(add_url)  # refresh the csrftoken cookie
+        resp = admin.post(
+            add_url,
+            data={
+                "username": username,
+                "usable_password": "true",
+                "password1": password,
+                "password2": password,
+                "csrfmiddlewaretoken": admin.cookies["csrftoken"],
+                "_save": "Save",
+            },
+            headers={"Referer": add_url},
+        )
+        resp.raise_for_status()
+        if "/change/" not in resp.url:
+            raise RuntimeError(f"Failed to create user {username!r} via admin.")
 
     def list_competitions(self, **params: Any) -> list[dict[str, Any]]:
         resp = self.session.get(f"{self.host}/api/competitions/", params=params)
@@ -76,6 +121,63 @@ class CodabenchClient:
 
         resp = self.session.post(
             f"{self.host}/api/competitions/{competition_id}/register/"
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    def create_competition(
+        self,
+        bundle_path: Path,
+        *,
+        interval: float | None = None,
+        timeout: float | None = None,
+    ) -> dict[str, Any]:
+        self._ensure_auth()
+
+        validate_competition_bundle(bundle_path)
+
+        resp = self.session.post(
+            f"{self.host}/api/datasets/",
+            data={
+                "type": "competition_bundle",
+                "request_sassy_file_name": bundle_path.name,
+                "file_name": bundle_path.name,
+                "file_size": bundle_path.stat().st_size,
+            },
+        )
+        resp.raise_for_status()
+        upload = resp.json()
+
+        with bundle_path.open("rb") as bundle_file:
+            resp = self.session.put(
+                upload["sassy_url"],
+                data=bundle_file,
+                headers={"Content-Type": "application/zip"},
+                timeout=(10, 300),
+            )
+        resp.raise_for_status()
+
+        resp = self.session.put(f"{self.host}/api/datasets/completed/{upload['key']}/")
+        resp.raise_for_status()
+        return self.poll_until_done(
+            func=self.get_competition_creation_status,
+            status_id=resp.json()["status_id"],
+            interval=interval,
+            timeout=timeout,
+        )
+
+    def delete_competition(self, competition_id: int | None) -> dict[str, Any]:
+        self._ensure_auth()
+        if competition_id is None:
+            raise ValueError("competition_id must be provided")
+        resp = self.session.delete(f"{self.host}/api/competitions/{competition_id}/")
+        resp.raise_for_status()
+        return {"status_code": resp.status_code}
+
+    def get_competition_creation_status(self, status_id: int) -> dict[str, Any]:
+        self._ensure_auth()
+        resp = self.session.get(
+            f"{self.host}/api/competitions/{status_id}/creation_status/"
         )
         resp.raise_for_status()
         return resp.json()
@@ -170,17 +272,18 @@ class CodabenchClient:
 
     def poll_until_done(
         self,
-        submission_id: int,
+        func,
+        status_id: int,
         *,
         interval: float | None = None,
         timeout: float | None = None,
     ) -> dict[str, Any]:
-        interval = interval or settings.poll_interval
-        timeout = timeout or settings.poll_timeout
+        interval = interval or self.settings.poll_interval
+        timeout = timeout or self.settings.poll_timeout
         deadline = time.monotonic() + timeout
 
         while True:
-            result = self.get_submission(submission_id)
+            result = func(status_id)
             state = result.get("status", "")
 
             if state in TERMINAL_STATUSES:
@@ -188,7 +291,7 @@ class CodabenchClient:
 
             if time.monotonic() > deadline:
                 raise TimeoutError(
-                    f"Submission {submission_id} still '{state}' " f"after {timeout}s"
+                    f"Status {status_id} still '{state}' " f"after {timeout}s"
                 )
 
             time.sleep(interval)

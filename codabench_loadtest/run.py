@@ -11,9 +11,11 @@ from pathlib import Path
 from dotenv import dotenv_values
 
 from codabench_loadtest.scenarios import EnvironmentSetup
+from codabench_loadtest.scenarios.common import Settings
 
-ROOT = Path(__file__).resolve().parent.parent
-ENV_DIR = ROOT / ".github" / "env"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / "data"
+ENV_DIR = ROOT_DIR / ".github" / "env"
 
 
 def main() -> int:
@@ -34,17 +36,20 @@ def main() -> int:
     env = os.environ.copy()
     env.update({k: v for k, v in dotenv_values(env_file).items() if v is not None})
 
-    host = env.get("DJANGO_HOST")
-    if not host:
-        parser.error(f"DJANGO_HOST is not defined in {env_file}")
+    codabench_settings = Settings(_env_file=env_file)  # type: ignore[call-arg]
+    environment = EnvironmentSetup(codabench_settings)
+    result = environment.create_competition(
+        bundle_path=DATA_DIR / codabench_settings.competition_bundle
+    )
+    competition_id = result.get("resulting_competition")
+    environment.create_user_pools(size=2)
+    print(competition_id)
 
-    environement = EnvironmentSetup(env_file)
-    environement.create_competition()
-    environement.create_user_pool()
-
-    cmd = ["locust", "--host", host, *locust_args]
+    cmd = ["locust", "--host", codabench_settings.host, *locust_args]
     print(f"[{args.env}] launching: {' '.join(cmd)}", file=sys.stderr)
-    return subprocess.call(cmd, env=env)
+    subprocess.call(cmd, env=env)
+
+    environment.codabench_client.delete_competition(int(competition_id))
 
 
 if __name__ == "__main__":

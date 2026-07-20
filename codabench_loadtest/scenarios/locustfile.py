@@ -4,6 +4,7 @@ from pathlib import Path
 from locust import HttpUser, between, task
 from locust.exception import StopUser
 
+from codabench_loadtest.scenarios.common import CodabenchClient
 from codabench_loadtest.scenarios.utils import authenticate
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -14,6 +15,7 @@ PASSWORD = os.environ.get("CODABENCH_PASSWORD", "12345")
 
 class SmokeUser(HttpUser):
     wait_time = between(1, 2)
+    codabench_client: CodabenchClient | None = None
 
     def on_start(self):
         authenticate(self.client, USERNAME, PASSWORD)
@@ -54,12 +56,8 @@ class ClassicalSubmissionUser(HttpUser):
         self._zip_bytes = self.submission_zip.read_bytes()
         self._zip_name = self.submission_zip.name
 
-        self.competition_id = (
-            os.environ.get("MNIST_COMPETITION_ID") or self._find_competition()
-        )
-        self.phase_id = os.environ.get("MNIST_PHASE_ID") or self._find_phase(
-            self.competition_id
-        )
+        self.competition_id = self._find_competition()
+        self.phase_id = self._find_phase(self.competition_id)
 
     def _find_competition(self):
         response = self.client.get(

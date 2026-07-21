@@ -1,14 +1,6 @@
 import pytest
 
-from codabench_loadtest.common.config import _PROJECT_ROOT, Settings
-
-
-def test_project_root_contains_locust_config():
-    assert (_PROJECT_ROOT / ".github" / "env" / ".env.example").is_file(), (
-        f"_PROJECT_ROOT ({_PROJECT_ROOT}) does not contain .env.example — "
-        "the path calculation in config.py is broken"
-    )
-
+from codabench_loadtest.common.config import Settings
 
 def test_poll_timeout_must_exceed_interval():
     with pytest.raises(ValueError, match="poll_timeout"):

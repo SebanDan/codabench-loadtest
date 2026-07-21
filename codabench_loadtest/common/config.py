@@ -1,16 +1,11 @@
-from pathlib import Path
-
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
     # All env vars use the CODABENCH_ prefix (e.g. CODABENCH_HOST,
     # CODABENCH_MINIO_ENDPOINT, CODABENCH_RABBITMQ_URL).
     model_config = SettingsConfigDict(
-        env_file=_PROJECT_ROOT / ".env",
         env_file_encoding="utf-8",
         env_prefix="CODABENCH_",
         extra="ignore",

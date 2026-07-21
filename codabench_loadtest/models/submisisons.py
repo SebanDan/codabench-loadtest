@@ -6,10 +6,12 @@ import random
 import zipfile
 from pathlib import Path
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class SubmissionZip(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     zip_path: Path
     zip_bytes: bytes | io.BytesIO | None = None
 

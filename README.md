@@ -13,6 +13,7 @@ This repository provides load testing scenarios for the codabench platform based
 
 ## Project structure
 
+```markdown
 codabench-loadtest/
 ├── codabench_loadtest/
 │   ├── locustfile.py            # Entrypoint for the locust tests
@@ -30,6 +31,7 @@ codabench-loadtest/
 ├── data/                        # Competition and submission bundles
 ├── locust.conf                  # Config Locust (CLI)
 ├── pyproject.toml
+```
 
 ## Usage
 
@@ -39,7 +41,7 @@ There is a configuration for locust in the `pyproject.toml` but it do not need t
 Then run :
 
 ```bash
-    uv run locust
+uv run locust
 ```
 
 ### How to change the bundles

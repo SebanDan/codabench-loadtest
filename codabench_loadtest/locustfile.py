@@ -16,7 +16,7 @@ def _(parser):
         "--env",
         type=str,
         default="local",
-        choices=["local", "prod"],  # évite les fautes de frappe
+        choices=["local", "prod"],
         help="Environnement cible (surcharge CODABENCH_ENV si fourni)",
     )
 

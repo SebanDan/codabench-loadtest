@@ -81,6 +81,9 @@ line_length = 88
 target-version = "py313"
 line-length = 88
 
+[tool.ruff.lint.per-file-ignores]
+"**/locustfile.py" = ["F401"]
+
 [tool.pyright]
 pythonVersion = "3.13"
 typeCheckingMode = "basic"

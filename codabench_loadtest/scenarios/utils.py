@@ -62,7 +62,6 @@ def upload_submission(
         if response.status_code not in (200, 201, 204):
             response.failure(f"dataset completion failed: {response.status_code}")
             return
-    print(data)
     return data
 
 
@@ -83,7 +82,6 @@ def create_submission(client: HttpSession, key: str, phase: int, name: str) -> A
                 f"submission failed: {response.status_code} {response.text[:200]}"
             )
             return
-    print(response.json())
     return response.json()
 
 
@@ -95,7 +93,6 @@ def validate_competition_bundle(bundle_path: Path):
     try:
         with zipfile.ZipFile(bundle_path) as bundle:
             if "competition.yaml" not in bundle.namelist():
-                print(bundle.namelist())
                 raise ValueError(
                     "Competition bundle must contain competition.yaml at its root"
                 )
@@ -111,7 +108,7 @@ def validate_competition_bundle(bundle_path: Path):
 def cancel_submission(client: HttpSession, submission_id: int) -> Any:
     with client.get(
         f"/api/submissions/{submission_id}/cancel_submission/",
-        name=f"/api/submissions/{submission_id}/cancel_submission/",
+        name="/api/submissions/[id]/cancel_submission/",
         catch_response=True,
     ) as response:
         if response.status_code != 200:

@@ -56,9 +56,8 @@ class EnvironmentSetup:
         return SubmissionPool.from_dir(submission_dir)
 
     def delete_users(self, user_pool: UserPool):
-        for user in user_pool.users:
-            if user.id is not None:
-                self.codabench_client.delete_user(user.id)
+        user_ids = [user.id for user in user_pool.users if user.id is not None]
+        self.codabench_client.delete_users(user_ids)
 
     def delete_competition(self, competition_id: int):
         self.codabench_client.delete_competition(competition_id)

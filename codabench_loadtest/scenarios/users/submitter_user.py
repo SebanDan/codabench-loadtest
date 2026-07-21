@@ -57,7 +57,6 @@ class SubmitterUser(HttpUser):
         cancel_submission(self.client, first["id"])
         sleep(1.75)
         self._submit(submission_zip, custom_name="+clumsy_second_submit")
-        re_run_submission(self.client, first["id"])
 
     @task
     def heavy_submit_task(self):

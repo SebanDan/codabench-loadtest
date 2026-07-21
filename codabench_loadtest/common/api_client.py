@@ -113,7 +113,18 @@ class CodabenchClient:
         response.raise_for_status()
         return response.json()
 
-    def delete_user(self, user_id: str) -> None:
+    def delete_users(self, user_ids: list[str]) -> None:
+        """Hard-delete users via the Django admin bulk action.
+
+        ``User.delete()`` is overridden to only *soft* delete (anonymize and
+        rename to ``deleted_user_<id>``). The admin changelist
+        ``delete_selected`` action calls ``QuerySet.delete()`` instead, which
+        bypasses that override and removes the rows for real. Doing it in a
+        single request also avoids one round-trip per user.
+        """
+        if not user_ids:
+            return
+
         admin = requests.Session()
 
         login_url = f"{self.host}/admin/login/"
@@ -129,19 +140,21 @@ class CodabenchClient:
             headers={"Referer": login_url},
         ).raise_for_status()
 
-        delete_url = f"{self.host}/admin/profiles/user/{user_id}/delete/"
-        admin.get(delete_url)  # confirmation page, refresh the csrftoken cookie
+        changelist_url = f"{self.host}/admin/profiles/user/"
+        admin.get(changelist_url)  # refresh the csrftoken cookie
         resp = admin.post(
-            delete_url,
+            changelist_url,
             data={
+                "action": "delete_selected",
                 "post": "yes",
+                "select_across": "0",
+                "index": "0",
+                "_selected_action": [str(uid) for uid in user_ids],
                 "csrfmiddlewaretoken": admin.cookies["csrftoken"],
             },
-            headers={"Referer": delete_url},
+            headers={"Referer": changelist_url},
         )
         resp.raise_for_status()
-        if resp.url.rstrip("/").endswith(f"/user/{user_id}/delete"):
-            raise RuntimeError(f"Failed to delete user {user_id} via admin.")
 
     def create_competition(
         self,

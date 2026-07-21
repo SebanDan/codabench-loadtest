@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from codabench_loadtest.common import CodabenchClient, Settings
-from codabench_loadtest.models import User, UserPool
+from codabench_loadtest.models import SubmissionPool, User, UserPool
 
 
 class EnvironmentSetup:
@@ -34,6 +34,9 @@ class EnvironmentSetup:
 
     def create_competition(self, bundle_path: Path):
         return self.codabench_client.create_competition(bundle_path)
+
+    def get_submission_pool(self, submission_dir: Path):
+        return SubmissionPool.from_dir(submission_dir)
 
     def delete_users(self, user_pool: UserPool):
         for user in user_pool.users:

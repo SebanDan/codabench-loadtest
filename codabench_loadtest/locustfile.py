@@ -3,10 +3,11 @@ from pathlib import Path
 from locust import events
 
 from codabench_loadtest.common import EnvironmentSetup, Settings
-from codabench_loadtest.scenarios.users import SmokeUser
+from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"
+SUBMISSION_DIR = DATA_DIR / "submissions"
 ENV_DIR = ROOT_DIR / ".github" / "env"
 
 
@@ -30,6 +31,8 @@ def on_init(environment, **kwargs):
     env_setup = EnvironmentSetup(codabench_settings)
     environment.env_setup = env_setup
     environment.data_dir = DATA_DIR
+    environment.submission_dir = SUBMISSION_DIR
+    environment.submission_pool = env_setup.get_submission_pool(SUBMISSION_DIR)
 
 
 @events.test_start.add_listener

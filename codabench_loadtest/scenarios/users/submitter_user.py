@@ -1,11 +1,20 @@
+from __future__ import annotations
+
+from time import sleep
+from typing import TYPE_CHECKING
+
 from locust import HttpUser, between, task
 
 from codabench_loadtest.scenarios.utils import (
     authenticate,
+    cancel_submission,
     create_submission,
+    re_run_submission,
     upload_submission,
-    validate_submission_zip,
 )
+
+if TYPE_CHECKING:
+    from codabench_loadtest.models import SubmissionZip
 
 
 class SubmitterUser(HttpUser):
@@ -17,17 +26,38 @@ class SubmitterUser(HttpUser):
         user = self.environment.user_pool.get_random_user()
         authenticate(self.client, user.username, user.password)
 
-        submission_zip = self.environment.data_dir / "mini_MNIST_code_submission.zip"
-        validate_submission_zip(submission_zip)
-        self._zip_bytes = submission_zip.read_bytes()
-        self._zip_name = submission_zip.name
-
-    @task
-    def submit(self):
+    def _submit(self, submission_zip: SubmissionZip, phase: int = 0):
         data = upload_submission(
             self.client,
             self.environment.competition_id,
-            self._zip_bytes,
-            self._zip_name,
+            zip_bytes=submission_zip.get_zip_bytes(),
+            zip_name=submission_zip.zip_name,
+            size=submission_zip.bytes_size(),
         )
-        create_submission(self.client, data["key"], phase=0)
+        return create_submission(self.client, data["key"], phase=phase)
+
+    @task
+    def submit_task(self):
+        submission_zip: SubmissionZip = (
+            self.environment.submission_pool.get_random_submission_zip()
+        )
+        self._submit(submission_zip)
+
+    @task
+    def clumsy_submit(self):
+        submission_zip: SubmissionZip = (
+            self.environment.submission_pool.get_random_submission_zip()
+        )
+        first = self._submit(submission_zip)
+        cancel_submission(self.client, first["id"])
+        sleep(1.75)
+        self._submit(submission_zip)
+        re_run_submission(self.client, first["id"])
+
+    @task
+    def heavy_submit(self):
+        submission_zip: SubmissionZip = (
+            self.environment.submission_pool.get_random_submission_zip()
+        )
+        submission_zip.generate_heavy_space(extra_size_mb=1024, chunk_mb=50)
+        self._submit(submission_zip)

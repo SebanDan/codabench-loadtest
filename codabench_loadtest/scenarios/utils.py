@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import zipfile
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, BinaryIO
 
 if TYPE_CHECKING:
     from locust.clients import HttpSession
@@ -16,13 +16,12 @@ def authenticate(client: HttpSession, username: str, password: str):
     client.headers.update({"Authorization": f"Token {response.json()['token']}"})
 
 
-def validate_submission_zip(submission_zip: Path):
-    if not submission_zip.is_file():
-        raise ValueError(f"Submission zip not found: {submission_zip}")
-
-
 def upload_submission(
-    client: HttpSession, competition_id: int, zip_bytes: bytes, zip_name: str
+    client: HttpSession,
+    competition_id: int,
+    zip_bytes: bytes | BinaryIO,
+    zip_name: str,
+    size: int,
 ) -> Any:
     with client.post(
         "/api/datasets/",
@@ -31,7 +30,7 @@ def upload_submission(
             "competition": competition_id,
             "request_sassy_file_name": zip_name,
             "file_name": zip_name,
-            "file_size": len(zip_bytes),
+            "file_size": size,
         },
         name="/api/datasets/ [create submission]",
         catch_response=True,
@@ -103,3 +102,29 @@ def validate_competition_bundle(bundle_path: Path):
                 )
     except zipfile.BadZipFile as error:
         raise ValueError(f"Invalid competition ZIP: {bundle_path}") from error
+
+
+def cancel_submission(client: HttpSession, submission_id: int) -> Any:
+    with client.get(
+        f"/api/submissions/{submission_id}/cancel_submission/",
+        name="/api/submissions/[id]/cancel_submission/",
+        catch_response=True,
+    ) as response:
+        if response.status_code != 200:
+            response.failure(
+                f"cancel failed: {response.status_code} {response.text[:200]}"
+            )
+    return response.json()
+
+
+def re_run_submission(client: HttpSession, submission_id: int) -> Any:
+    with client.post(
+        f"/api/submissions/{submission_id}/re_run_submission/",
+        name="/api/submissions/[id]/re_run_submission/",
+        catch_response=True,
+    ) as response:
+        if response.status_code not in (200, 201):
+            response.failure(
+                f"re_run failed: {response.status_code} {response.text[:200]}"
+            )
+    return response.json()

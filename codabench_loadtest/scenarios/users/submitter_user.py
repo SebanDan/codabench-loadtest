@@ -9,7 +9,6 @@ from codabench_loadtest.scenarios.utils import (
     authenticate,
     cancel_submission,
     create_submission,
-    re_run_submission,
     upload_submission,
 )
 

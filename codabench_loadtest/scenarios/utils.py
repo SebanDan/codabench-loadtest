@@ -117,15 +117,3 @@ def cancel_submission(client: HttpSession, submission_id: int) -> Any:
             )
     return response.json()
 
-
-def re_run_submission(client: HttpSession, submission_id: int) -> Any:
-    with client.post(
-        f"/api/submissions/{submission_id}/re_run_submission/",
-        name=f"/api/submissions/{submission_id}/re_run_submission/",
-        catch_response=True,
-    ) as response:
-        if response.status_code not in (200, 201):
-            response.failure(
-                f"re_run failed: {response.status_code} {response.text[:200]}"
-            )
-    return response.json()

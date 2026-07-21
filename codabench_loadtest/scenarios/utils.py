@@ -116,4 +116,3 @@ def cancel_submission(client: HttpSession, submission_id: int) -> Any:
                 f"cancel failed: {response.status_code} {response.text[:200]}"
             )
     return response.json()
-

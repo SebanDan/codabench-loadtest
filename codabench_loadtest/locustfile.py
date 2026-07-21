@@ -41,13 +41,24 @@ def on_test_start(environment, **kwargs):
         bundle_path=DATA_DIR / environment.codabench_settings.competition_bundle
     )
     environment.competition_id = result.get("resulting_competition")
+    environment.competition_phase_id = (
+        environment.env_setup.get_competition_first_phase(
+            competition_id=environment.competition_id
+        )
+    )
     user_pool = environment.env_setup.create_user_pools(
         size=environment.parsed_options.num_users
+    )
+    environment.env_setup.register_user_pool(
+        competition_id=environment.competition_id, user_pool=user_pool
     )
     environment.user_pool = user_pool
 
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
-    environment.env_setup.delete_users(environment.user_pool)
+    # Delete the competition first: its CASCADE FKs remove the participants and
+    # submissions that reference the pool users. Those references use
+    # on_delete=DO_NOTHING, so users cannot be hard-deleted while they exist.
     environment.env_setup.delete_competition(environment.competition_id)
+    environment.env_setup.delete_users(environment.user_pool)

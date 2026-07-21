@@ -32,16 +32,32 @@ class EnvironmentSetup:
             pool.users.append(user)
         return pool
 
+    def register_user_pool(self, competition_id: int, user_pool: UserPool):
+        for user in user_pool.users:
+            self.codabench_client.register_to_competition(
+                username=user.username,
+                password=user.password,
+                competition_id=competition_id,
+            )
+
     def create_competition(self, bundle_path: Path):
-        return self.codabench_client.create_competition(bundle_path)
+        result = self.codabench_client.create_competition(bundle_path)
+        competition_id = result.get("resulting_competition")
+        if competition_id is not None:
+            self.codabench_client.publish_competition(competition_id)
+        return result
+
+    def get_competition_first_phase(self, competition_id: int) -> int:
+        competition_data = self.codabench_client.get_competition(competition_id)
+        phases = competition_data["phases"]
+        return phases[0].get("id") or competition_id
 
     def get_submission_pool(self, submission_dir: Path):
         return SubmissionPool.from_dir(submission_dir)
 
     def delete_users(self, user_pool: UserPool):
-        for user in user_pool.users:
-            if user.id is not None:
-                self.codabench_client.delete_user(user.id)
+        user_ids = [user.id for user in user_pool.users if user.id is not None]
+        self.codabench_client.delete_users(user_ids)
 
     def delete_competition(self, competition_id: int):
         self.codabench_client.delete_competition(competition_id)

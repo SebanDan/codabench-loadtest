@@ -32,13 +32,14 @@ def upload_submission(
             "file_name": zip_name,
             "file_size": size,
         },
-        name="/api/datasets/ [create submission]",
+        name=f"/api/datasets/ [create submission {zip_name}]",
         catch_response=True,
     ) as response:
         if response.status_code != 201:
             response.failure(
                 f"dataset create failed: {response.status_code} {response.text[:200]}"
             )
+            return
     data = response.json()
     key = data["key"]
     sassy_url = data["sassy_url"]
@@ -61,11 +62,10 @@ def upload_submission(
         if response.status_code not in (200, 201, 204):
             response.failure(f"dataset completion failed: {response.status_code}")
             return
-
     return data
 
 
-def create_submission(client: HttpSession, key: str, phase: int) -> Any:
+def create_submission(client: HttpSession, key: str, phase: int, name: str) -> Any:
     with client.post(
         "/api/submissions/",
         json={
@@ -74,13 +74,14 @@ def create_submission(client: HttpSession, key: str, phase: int) -> Any:
             "tasks": [],
             "organization": None,
         },
-        name="/api/submissions/ [create]",
+        name=f"/api/submissions/ [create {name}]",
         catch_response=True,
     ) as response:
         if response.status_code not in (200, 201):
             response.failure(
                 f"submission failed: {response.status_code} {response.text[:200]}"
             )
+            return
     return response.json()
 
 
@@ -113,18 +114,5 @@ def cancel_submission(client: HttpSession, submission_id: int) -> Any:
         if response.status_code != 200:
             response.failure(
                 f"cancel failed: {response.status_code} {response.text[:200]}"
-            )
-    return response.json()
-
-
-def re_run_submission(client: HttpSession, submission_id: int) -> Any:
-    with client.post(
-        f"/api/submissions/{submission_id}/re_run_submission/",
-        name="/api/submissions/[id]/re_run_submission/",
-        catch_response=True,
-    ) as response:
-        if response.status_code not in (200, 201):
-            response.failure(
-                f"re_run failed: {response.status_code} {response.text[:200]}"
             )
     return response.json()

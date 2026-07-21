@@ -143,30 +143,6 @@ class CodabenchClient:
         if resp.url.rstrip("/").endswith(f"/user/{user_id}/delete"):
             raise RuntimeError(f"Failed to delete user {user_id} via admin.")
 
-    def list_competitions(self, **params: Any) -> list[dict[str, Any]]:
-        resp = self.session.get(f"{self.host}/api/competitions/", params=params)
-        resp.raise_for_status()
-        return resp.json()["results"]
-
-    def list_public_competitions(self, **params: Any) -> list[dict[str, Any]]:
-        resp = self.session.get(f"{self.host}/api/competitions/public/", params=params)
-        resp.raise_for_status()
-        return resp.json()["results"]
-
-    def get_front_page(self) -> dict[str, Any]:
-        resp = self.session.get(f"{self.host}/api/competitions/front_page/")
-        resp.raise_for_status()
-        return resp.json()
-
-    def register(self, competition_id: int) -> dict[str, Any]:
-        self._ensure_auth()
-
-        resp = self.session.post(
-            f"{self.host}/api/competitions/{competition_id}/register/"
-        )
-        resp.raise_for_status()
-        return resp.json()
-
     def create_competition(
         self,
         bundle_path: Path,
@@ -219,44 +195,6 @@ class CodabenchClient:
         resp = self.session.get(
             f"{self.host}/api/competitions/{status_id}/creation_status/"
         )
-        resp.raise_for_status()
-        return resp.json()
-
-    # ---------------------------------------------------------- leaderboards
-
-    def get_leaderboard(self, phase_id: int) -> dict[str, Any]:
-        resp = self.session.get(f"{self.host}/api/phases/{phase_id}/get_leaderboard/")
-        resp.raise_for_status()
-        return resp.json()
-
-    # ---------------------------------------------------------- submissions
-
-    def can_make_submission(self, phase_id: int) -> dict[str, Any]:
-        self._ensure_auth()
-
-        resp = self.session.get(f"{self.host}/api/can_make_submission/{phase_id}/")
-        resp.raise_for_status()
-        return resp.json()
-
-    def submit(
-        self,
-        phase_id: int,
-        bundle_path: str | Path,
-        *,
-        organization: int | None = None,
-    ) -> dict[str, Any]:
-        self._ensure_auth()
-
-        with open(bundle_path, "rb") as f:
-            data: dict[str, Any] = {"phase": phase_id}
-            if organization is not None:
-                data["organization"] = organization
-
-            resp = self.session.post(
-                f"{self.host}/api/submissions/",
-                data=data,
-                files={"data_file": f},
-            )
         resp.raise_for_status()
         return resp.json()
 
@@ -335,19 +273,3 @@ class CodabenchClient:
                 )
 
             time.sleep(interval)
-
-    # ---------------------------------------------------------- utilities
-
-    def get_my_profile(self) -> dict[str, Any]:
-        self._ensure_auth()
-
-        resp = self.session.get(f"{self.host}/api/my_profile/")
-        resp.raise_for_status()
-        return resp.json()
-
-    def list_queues(self, **params: Any) -> list[dict[str, Any]]:
-        self._ensure_auth()
-
-        resp = self.session.get(f"{self.host}/api/queues/", params=params)
-        resp.raise_for_status()
-        return resp.json()["results"]

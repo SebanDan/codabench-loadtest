@@ -24,7 +24,7 @@ def _(parser):
 @events.init.add_listener
 def on_init(environment, **kwargs):
     env_file = ENV_DIR / f"{environment.parsed_options.env}.env"
-    codabench_settings = Settings(_env_file=env_file) # type: ignore[call-arg]
+    codabench_settings = Settings(_env_file=env_file)  # type: ignore[call-arg]
     environment.codabench_settings = codabench_settings
 
     env_setup = EnvironmentSetup(codabench_settings)

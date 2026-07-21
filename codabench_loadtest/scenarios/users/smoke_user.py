@@ -8,7 +8,6 @@ class SmokeUser(HttpUser):
 
     def on_start(self):
         user = self.environment.user_pool.get_random_user()
-        print(user)
         authenticate(self.client, user.username, user.password)
 
     @task

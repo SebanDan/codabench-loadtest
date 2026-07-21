@@ -28,22 +28,23 @@ def on_init(environment, **kwargs):
     environment.codabench_settings = codabench_settings
 
     env_setup = EnvironmentSetup(codabench_settings)
-    result = env_setup.create_competition(
-        bundle_path=DATA_DIR / codabench_settings.competition_bundle
-    )
-    user_pool = env_setup.create_user_pools(size=2)
-    environment.competition_id = result.get("resulting_competition")
-    environment.user_pool = user_pool
+    environment.env_setup = env_setup
     environment.data_dir = DATA_DIR
-    environment.setup = env_setup
 
 
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
-    pass
+    result = environment.env_setup.create_competition(
+        bundle_path=DATA_DIR / environment.codabench_settings.competition_bundle
+    )
+    environment.competition_id = result.get("resulting_competition")
+    user_pool = environment.env_setup.create_user_pools(
+        size=environment.parsed_options.num_users
+    )
+    environment.user_pool = user_pool
 
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
-    environment.setup.delete_users(environment.user_pool)
-    environment.setup.delete_competition(environment.competition_id)
+    environment.env_setup.delete_users(environment.user_pool)
+    environment.env_setup.delete_competition(environment.competition_id)

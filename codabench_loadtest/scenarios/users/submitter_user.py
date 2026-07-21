@@ -26,7 +26,7 @@ class SubmitterUser(HttpUser):
         user = self.environment.user_pool.get_random_user()
         authenticate(self.client, user.username, user.password)
 
-    def _submit(self, submission_zip: SubmissionZip, phase: int = 0):
+    def _submit(self, submission_zip: SubmissionZip, custom_name: str = ""):
         data = upload_submission(
             self.client,
             self.environment.competition_id,
@@ -34,7 +34,12 @@ class SubmitterUser(HttpUser):
             zip_name=submission_zip.zip_name,
             size=submission_zip.bytes_size(),
         )
-        return create_submission(self.client, data["key"], phase=phase)
+        return create_submission(
+            self.client,
+            data["key"],
+            phase=self.environment.competition_phase_id,
+            name=submission_zip.zip_name + custom_name,
+        )
 
     @task
     def submit_task(self):
@@ -48,10 +53,10 @@ class SubmitterUser(HttpUser):
         submission_zip: SubmissionZip = (
             self.environment.submission_pool.get_random_submission_zip()
         )
-        first = self._submit(submission_zip)
+        first = self._submit(submission_zip, custom_name="+clumsy_first_submit")
         cancel_submission(self.client, first["id"])
         sleep(1.75)
-        self._submit(submission_zip)
+        self._submit(submission_zip, custom_name="+clumsy_second_submit")
         re_run_submission(self.client, first["id"])
 
     @task
@@ -60,4 +65,4 @@ class SubmitterUser(HttpUser):
             self.environment.submission_pool.get_random_submission_zip()
         )
         submission_zip.generate_heavy_space(extra_size_mb=1024, chunk_mb=50)
-        self._submit(submission_zip)
+        self._submit(submission_zip, custom_name="+heavy_submit")

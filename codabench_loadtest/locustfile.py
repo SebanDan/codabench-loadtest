@@ -41,8 +41,17 @@ def on_test_start(environment, **kwargs):
         bundle_path=DATA_DIR / environment.codabench_settings.competition_bundle
     )
     environment.competition_id = result.get("resulting_competition")
+    print(environment.competition_id)
+    environment.competition_phase_id = (
+        environment.env_setup.get_competition_first_phase(
+            competition_id=environment.competition_id
+        )
+    )
     user_pool = environment.env_setup.create_user_pools(
         size=environment.parsed_options.num_users
+    )
+    environment.env_setup.register_user_pool(
+        competition_id=environment.competition_id, user_pool=user_pool
     )
     environment.user_pool = user_pool
 

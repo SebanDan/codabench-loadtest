@@ -32,13 +32,14 @@ def upload_submission(
             "file_name": zip_name,
             "file_size": size,
         },
-        name="/api/datasets/ [create submission]",
+        name=f"/api/datasets/ [create submission {zip_name}]",
         catch_response=True,
     ) as response:
         if response.status_code != 201:
             response.failure(
                 f"dataset create failed: {response.status_code} {response.text[:200]}"
             )
+            return
     data = response.json()
     key = data["key"]
     sassy_url = data["sassy_url"]
@@ -61,11 +62,11 @@ def upload_submission(
         if response.status_code not in (200, 201, 204):
             response.failure(f"dataset completion failed: {response.status_code}")
             return
-
+    print(data)
     return data
 
 
-def create_submission(client: HttpSession, key: str, phase: int) -> Any:
+def create_submission(client: HttpSession, key: str, phase: int, name: str) -> Any:
     with client.post(
         "/api/submissions/",
         json={
@@ -74,13 +75,15 @@ def create_submission(client: HttpSession, key: str, phase: int) -> Any:
             "tasks": [],
             "organization": None,
         },
-        name="/api/submissions/ [create]",
+        name=f"/api/submissions/ [create {name}]",
         catch_response=True,
     ) as response:
         if response.status_code not in (200, 201):
             response.failure(
                 f"submission failed: {response.status_code} {response.text[:200]}"
             )
+            return
+    print(response.json())
     return response.json()
 
 
@@ -92,6 +95,7 @@ def validate_competition_bundle(bundle_path: Path):
     try:
         with zipfile.ZipFile(bundle_path) as bundle:
             if "competition.yaml" not in bundle.namelist():
+                print(bundle.namelist())
                 raise ValueError(
                     "Competition bundle must contain competition.yaml at its root"
                 )
@@ -107,7 +111,7 @@ def validate_competition_bundle(bundle_path: Path):
 def cancel_submission(client: HttpSession, submission_id: int) -> Any:
     with client.get(
         f"/api/submissions/{submission_id}/cancel_submission/",
-        name="/api/submissions/[id]/cancel_submission/",
+        name=f"/api/submissions/{submission_id}/cancel_submission/",
         catch_response=True,
     ) as response:
         if response.status_code != 200:
@@ -120,7 +124,7 @@ def cancel_submission(client: HttpSession, submission_id: int) -> Any:
 def re_run_submission(client: HttpSession, submission_id: int) -> Any:
     with client.post(
         f"/api/submissions/{submission_id}/re_run_submission/",
-        name="/api/submissions/[id]/re_run_submission/",
+        name=f"/api/submissions/{submission_id}/re_run_submission/",
         catch_response=True,
     ) as response:
         if response.status_code not in (200, 201):

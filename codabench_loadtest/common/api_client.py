@@ -184,6 +184,44 @@ class CodabenchClient:
             timeout=timeout,
         )
 
+    def get_competition(self, competition_id: int):
+        self._ensure_auth()
+        response = self.session.get(f"{self.host}/api/competitions/{competition_id}/")
+        response.raise_for_status()
+        return response.json()
+
+    def publish_competition(self, competition_id: int) -> dict[str, Any]:
+        """Publish a competition and auto-approve its participants."""
+        self._ensure_auth()
+        resp = self.session.patch(
+            f"{self.host}/api/competitions/{competition_id}/",
+            json={
+                "published": True,
+                "registration_auto_approve": True,
+                "whitelist_emails": [],
+            },
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    def register_to_competition(
+        self, username: str, password: str, competition_id: int
+    ) -> dict[str, Any]:
+        """Register a user as a participant of the competition."""
+        session = requests.Session()
+        resp = session.post(
+            f"{self.host}/api/api-token-auth/",
+            json={"username": username, "password": password},
+        )
+        resp.raise_for_status()
+        token = resp.json()["token"]
+        resp = session.post(
+            f"{self.host}/api/competitions/{competition_id}/register/",
+            headers={"Authorization": f"Token {token}"},
+        )
+        resp.raise_for_status()
+        return resp.json()
+
     def delete_competition(self, competition_id: int) -> dict[str, Any]:
         self._ensure_auth()
         resp = self.session.delete(f"{self.host}/api/competitions/{competition_id}/")

@@ -6,14 +6,12 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "locust>=2.45.0",
+    "pydantic>=2.13.4",
     "python-dotenv>=1.2.2",
     "requests>=2.32.0",
     "pydantic-settings>=2.9.0",
+    "faker>=40.31.0",
 ]
-
-[project.scripts]
-loadtest = "codabench_loadtest.run:main"
-
 
 [dependency-groups]
 
@@ -61,7 +59,7 @@ reports = [
 # -----------------------------------------------
 
 [tool.setuptools.packages.find]
-include = ["codabench_loadtest", "scenarios*"]
+include = ["codabench_loadtest"]
 
 [tool.uv]
 package = true
@@ -83,6 +81,9 @@ line_length = 88
 target-version = "py313"
 line-length = 88
 
+[tool.ruff.lint.per-file-ignores]
+"**/locustfile.py" = ["F401"]
+
 [tool.pyright]
 pythonVersion = "3.13"
 typeCheckingMode = "basic"
@@ -94,3 +95,18 @@ targets = []
 
 [tool.coverage.run]
 branch = true
+
+[tool.coverage.report]
+fail_under = 1
+ignore_errors = true
+show_missing = true
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.locust]
+locustfile = "codabench_loadtest/locustfile.py"
+csv = "reports/report"
+html = "reports/report.html"
+loglevel = "INFO"

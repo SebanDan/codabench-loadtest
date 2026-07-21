@@ -31,13 +31,18 @@ jobs:
 
       - name: Check Formatting
         run: |
-          uv run --only-group format black --check .
-          uv run --only-group format isort --check .
+          uv run --only-group format black --check codabench_loadtest
+          uv run --only-group format isort --check codabench_loadtest
 
       - name: Check linting
         run: |
-          uv run --only-group lint ruff check .
+          uv run --only-group lint ruff check codabench_loadtest
 
       - name: Check typing
         run: |
-          uv run --group typing pyright .
+          uv run --group typing pyright codabench_loadtest
+
+      - name: Unit Tests
+        run: |
+          uv run --group test coverage run --source codabench_loadtest -m pytest tests
+          uv run --group test coverage report

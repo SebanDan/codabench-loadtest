@@ -75,3 +75,9 @@ download/
 
 .vscode/
 .tours/
+.locust_env/
+locust.conf
+*.csv
+*.env
+*.html
+*locust.conf

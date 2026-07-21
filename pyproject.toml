@@ -13,10 +13,6 @@ dependencies = [
     "faker>=40.31.0",
 ]
 
-[project.scripts]
-loadtest = "codabench_loadtest.run:main"
-
-
 [dependency-groups]
 
 dev = [
@@ -63,7 +59,7 @@ reports = [
 # -----------------------------------------------
 
 [tool.setuptools.packages.find]
-include = ["codabench_loadtest", "scenarios*"]
+include = ["codabench_loadtest"]
 
 [tool.uv]
 package = true
@@ -107,7 +103,7 @@ exclude_lines = [
 ]
 
 [tool.locust]
-locustfile = "codabench_loadtest/scenarios/locustfile.py"
+locustfile = "codabench_loadtest/locustfile.py"
 csv = "reports/report"
 html = "reports/report.html"
 loglevel = "INFO"

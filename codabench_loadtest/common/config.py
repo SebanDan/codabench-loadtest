@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import AliasChoices, Field, SecretStr, model_validator
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -32,12 +32,6 @@ class Settings(BaseSettings):
     # Submission defaults
     competition_bundle: str = "Mini-MNIST-Bundle.zip"
     competition_id: int | None = None
-
-    # User pool size for load testing
-    user_count: int = Field(
-        default=10,
-        validation_alias=AliasChoices("CODABENCH_USER_COUNT", "USER_COUNT"),
-    )
 
     # Thresholds for assertions / reports
     max_response_time_p95: float = 2.0

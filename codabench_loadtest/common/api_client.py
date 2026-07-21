@@ -6,7 +6,7 @@ from typing import Any
 
 import requests
 
-from codabench_loadtest.scenarios.common.config import Settings
+from codabench_loadtest.common.config import Settings
 from codabench_loadtest.scenarios.utils import validate_competition_bundle
 
 # Submission statuses as returned by the API (Title Case).
@@ -59,7 +59,7 @@ class CodabenchClient:
         if not self._authenticated:
             self.login()
 
-    def create_user(self, username: str, password: str) -> None:
+    def create_user(self, username: str, password: str, email: str) -> dict[str, Any]:
         """Create an active Codabench user via the Django admin.
 
         Uses a dedicated session so the admin's session/CSRF cookies don't
@@ -68,8 +68,6 @@ class CodabenchClient:
         """
         admin = requests.Session()
 
-        # Log into the admin to get a session cookie (the DRF token doesn't
-        # authenticate the admin site).
         login_url = f"{self.host}/admin/login/"
         admin.get(login_url)  # sets the csrftoken cookie
         admin.post(
@@ -100,6 +98,50 @@ class CodabenchClient:
         resp.raise_for_status()
         if "/change/" not in resp.url:
             raise RuntimeError(f"Failed to create user {username!r} via admin.")
+
+        user_id = str(resp.url.rstrip("/").split("/")[-2])
+
+        self.patch_user(user_id=user_id, json_data={"email": email})
+        return {"id": user_id}
+
+    def patch_user(self, user_id: str, json_data: dict) -> dict[str, Any]:
+        self._ensure_auth()
+        response = self.session.patch(
+            f"{self.host}/api/users/{user_id}/",
+            json=json_data,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def delete_user(self, user_id: str) -> None:
+        admin = requests.Session()
+
+        login_url = f"{self.host}/admin/login/"
+        admin.get(login_url)  # sets the csrftoken cookie
+        admin.post(
+            login_url,
+            data={
+                "username": self.settings.username,
+                "password": self.settings.password.get_secret_value(),
+                "csrfmiddlewaretoken": admin.cookies["csrftoken"],
+                "next": "/admin/",
+            },
+            headers={"Referer": login_url},
+        ).raise_for_status()
+
+        delete_url = f"{self.host}/admin/profiles/user/{user_id}/delete/"
+        admin.get(delete_url)  # confirmation page, refresh the csrftoken cookie
+        resp = admin.post(
+            delete_url,
+            data={
+                "post": "yes",
+                "csrfmiddlewaretoken": admin.cookies["csrftoken"],
+            },
+            headers={"Referer": delete_url},
+        )
+        resp.raise_for_status()
+        if resp.url.rstrip("/").endswith(f"/user/{user_id}/delete"):
+            raise RuntimeError(f"Failed to delete user {user_id} via admin.")
 
     def list_competitions(self, **params: Any) -> list[dict[str, Any]]:
         resp = self.session.get(f"{self.host}/api/competitions/", params=params)

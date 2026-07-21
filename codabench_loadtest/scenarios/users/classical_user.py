@@ -4,26 +4,7 @@ from pathlib import Path
 from locust import HttpUser, between, task
 from locust.exception import StopUser
 
-from codabench_loadtest.scenarios.common import CodabenchClient
 from codabench_loadtest.scenarios.utils import authenticate
-
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-
-USERNAME = os.environ.get("CODABENCH_USERNAME", "admin")
-PASSWORD = os.environ.get("CODABENCH_PASSWORD", "12345")
-
-
-class SmokeUser(HttpUser):
-    wait_time = between(1, 2)
-    codabench_client: CodabenchClient | None = None
-
-    def on_start(self):
-        authenticate(self.client, USERNAME, PASSWORD)
-
-    @task
-    def smoke_task(self):
-        self.client.get("/api/my_profile/")
-        self.client.get("/api/analytics/users_usage/")
 
 
 class ClassicalSubmissionUser(HttpUser):
@@ -42,19 +23,17 @@ class ClassicalSubmissionUser(HttpUser):
     wait_time = between(1, 3)
 
     competition_search = os.environ.get("MNIST_COMPETITION_SEARCH", "MNIST")
-    submission_zip = Path(
-        os.environ.get(
-            "SUBMISSION_ZIP", str(DATA_DIR / "mini_MNIST_code_submission.zip")
-        )
-    )
 
     def on_start(self):
-        authenticate(self.client, USERNAME, PASSWORD)
+        user = self.environment.user_pool.get_random_user()
+        authenticate(self.client, user.username, user.password)
 
-        if not self.submission_zip.is_file():
-            raise StopUser(f"Submission zip not found: {self.submission_zip}")
-        self._zip_bytes = self.submission_zip.read_bytes()
-        self._zip_name = self.submission_zip.name
+        submission_zip = self.environment.data_dir / "mini_MNIST_code_submission.zip"
+
+        if not submission_zip.is_file():
+            raise StopUser(f"Submission zip not found: {submission_zip}")
+        self._zip_bytes = submission_zip.read_bytes()
+        self._zip_name = submission_zip.name
 
         self.competition_id = self._find_competition()
         self.phase_id = self._find_phase(self.competition_id)

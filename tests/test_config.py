@@ -1,6 +1,6 @@
 import pytest
 
-from codabench_loadtest.scenarios.common.config import _PROJECT_ROOT, Settings
+from codabench_loadtest.common.config import _PROJECT_ROOT, Settings
 
 
 def test_project_root_contains_locust_config():

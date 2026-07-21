@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from codabench_loadtest.scenarios.common import CodabenchClient, Settings
-from codabench_loadtest.scenarios.models import User, UserPool
+from codabench_loadtest.common import CodabenchClient, Settings
+from codabench_loadtest.models import User, UserPool
 
 
 class EnvironmentSetup:
@@ -13,8 +13,6 @@ class EnvironmentSetup:
         self.settings = settings
         self.codabench_client = CodabenchClient(config=settings)
         self.codabench_client.login()
-        self.competition_id: int | None = None
-        self.user_pool: UserPool | None = None
 
     def create_user_pools(self, size: int = 10) -> UserPool:
         """
@@ -27,12 +25,20 @@ class EnvironmentSetup:
         pool = UserPool()
         for _ in range(size):
             user = User()
-            self.codabench_client.create_user(user.username, user.password)
+            details = self.codabench_client.create_user(
+                username=user.username, password=user.password, email=user.email
+            )
+            user.id = details["id"]
             pool.users.append(user)
-        self.user_pool = pool
         return pool
 
     def create_competition(self, bundle_path: Path):
-        result = self.codabench_client.create_competition(bundle_path)
-        self.competition_id = result.get("resulting_competition")
-        return result
+        return self.codabench_client.create_competition(bundle_path)
+
+    def delete_users(self, user_pool: UserPool):
+        for user in user_pool.users:
+            if user.id is not None:
+                self.codabench_client.delete_user(user.id)
+
+    def delete_competition(self, competition_id: int):
+        self.codabench_client.delete_competition(competition_id)

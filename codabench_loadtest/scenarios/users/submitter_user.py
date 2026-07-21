@@ -44,7 +44,7 @@ class SubmitterUser(HttpUser):
         self._submit(submission_zip)
 
     @task
-    def clumsy_submit(self):
+    def clumsy_submit_task(self):
         submission_zip: SubmissionZip = (
             self.environment.submission_pool.get_random_submission_zip()
         )
@@ -55,7 +55,7 @@ class SubmitterUser(HttpUser):
         re_run_submission(self.client, first["id"])
 
     @task
-    def heavy_submit(self):
+    def heavy_submit_task(self):
         submission_zip: SubmissionZip = (
             self.environment.submission_pool.get_random_submission_zip()
         )

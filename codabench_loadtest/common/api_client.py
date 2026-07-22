@@ -23,15 +23,13 @@ TERMINAL_STATUSES = frozenset({FINISHED, FAILED, CANCELLED})
 
 
 class CodabenchClient:
-    """Reusable client for the Codabench REST API."""
+    """A basic client for the Codabench REST API that does not require Locust."""
 
-    def __init__(
-        self, config: Settings, custom_session: requests.Session | None = None
-    ) -> None:
+    def __init__(self, config: Settings) -> None:
         self.host = config.host.rstrip("/")
-        self.session = custom_session or requests.Session()
-        self._authenticated = False
         self.settings = config
+        self.session = requests.Session()
+        self._authenticated = False
 
     # ------------------------------------------------------------------ auth
 
@@ -52,7 +50,7 @@ class CodabenchClient:
             },
         )
         resp.raise_for_status()
-        self.session.headers["Authorization"] = f"Token {resp.json()['token']}"
+        self.session.headers.update({"Authorization": f"Token {resp.json()['token']}"})
         self._authenticated = True
 
     def _ensure_auth(self) -> None:
@@ -259,15 +257,6 @@ class CodabenchClient:
 
         resp = self.session.get(
             f"{self.host}/api/submissions/{submission_id}/get_details/"
-        )
-        resp.raise_for_status()
-        return resp.json()
-
-    def cancel(self, submission_id: int) -> dict[str, Any]:
-        self._ensure_auth()
-
-        resp = self.session.get(
-            f"{self.host}/api/submissions/{submission_id}/cancel_submission/"
         )
         resp.raise_for_status()
         return resp.json()

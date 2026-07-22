@@ -3,7 +3,7 @@ from __future__ import annotations
 from time import sleep
 from typing import TYPE_CHECKING
 
-from locust import HttpUser, between, task, tag
+from locust import HttpUser, between, tag, task
 
 from codabench_loadtest.scenarios.utils import (
     authenticate,
@@ -33,12 +33,14 @@ class SubmitterUser(HttpUser):
             zip_name=submission_zip.zip_name,
             size=submission_zip.bytes_size(),
         )
-        return create_submission(
+        submitted = create_submission(
             self.client,
             data["key"],
             phase=self.environment.competition_phase_id,
             name=submission_zip.zip_name + custom_name,
         )
+        # wait_submission_completed # :TODO: add a polling method to wait to completion
+        return submitted
 
     @tag("normal")
     @task

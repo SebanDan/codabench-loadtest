@@ -61,3 +61,4 @@ class EnvironmentSetup:
 
     def delete_competition(self, competition_id: int):
         self.codabench_client.delete_competition(competition_id)
+        self.codabench_client.delete_datasets(self.competition_dataset_ids)

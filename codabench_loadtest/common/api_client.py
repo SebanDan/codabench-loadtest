@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -235,11 +236,91 @@ class CodabenchClient:
         resp.raise_for_status()
         return resp.json()
 
-    def delete_competition(self, competition_id: int) -> dict[str, Any]:
+    def list_submissions(self, competition_id: int) -> list[dict[str, Any]]:
+        """List all (non-soft-deleted) submissions of a competition.
+
+        Uses ``page_size=all`` to fetch every submission in a single call
+        (capped server-side at 1000).
+        """
         self._ensure_auth()
+        params: dict[str, str] = {
+            "phase__competition": str(competition_id),
+            "page_size": "all",
+        }
+        resp = self.session.get(f"{self.host}/api/submissions/", params=params)
+        resp.raise_for_status()
+        payload = resp.json()
+        if isinstance(payload, dict):
+            return payload.get("results", [])
+        return payload
+
+    def wait_for_submissions_completed(
+        self,
+        competition_id: int,
+        *,
+        interval: float | None = None,
+        timeout: float | None = None,
+    ) -> None:
+        """Block until every submission of the competition is terminal."""
+        for submission in self.list_submissions(competition_id):
+            if submission.get("status") in TERMINAL_STATUSES:
+                continue
+            self.poll_until_done(
+                self.get_submission,
+                submission["id"],
+                interval=interval,
+                timeout=timeout,
+            )
+
+    def delete_competition(
+        self,
+        competition_id: int,
+    ) -> dict[str, Any]:
+        """Delete a competition after draining its in-flight submissions."""
+        self._ensure_auth()
+        self.wait_for_submissions_completed(competition_id)
         resp = self.session.delete(f"{self.host}/api/competitions/{competition_id}/")
         resp.raise_for_status()
         return {"status_code": resp.status_code}
+
+    def list_dataset_ids(self, *, kind: str) -> set[int]:
+        """Return the ids of the authenticated user's datasets of ``kind``.
+
+        ``kind`` maps to the API ``_type`` filter: ``"dataset"`` (input,
+        reference, scoring, ingestion, starting kit, solution), ``"bundle"``
+        (competition bundle) or ``"submission"``. The endpoint only returns
+        datasets owned by the caller, so this is scoped to the admin account.
+        """
+        self._ensure_auth()
+        ids: set[int] = set()
+        page = 1
+        while True:
+            resp = self.session.get(
+                f"{self.host}/api/datasets/",
+                params={"_type": kind, "page_size": "1000", "page": str(page)},
+            )
+            resp.raise_for_status()
+            payload = resp.json()
+            results = (
+                payload.get("results", []) if isinstance(payload, dict) else payload
+            )
+            ids.update(item["id"] for item in results)
+            if not (isinstance(payload, dict) and payload.get("next")):
+                break
+            page += 1
+        return ids
+
+    def delete_datasets(self, dataset_ids: Iterable[int]) -> None:
+        """Bulk-delete datasets owned by the authenticated user."""
+        ids = list(dataset_ids)
+        if not ids:
+            return
+        self._ensure_auth()
+        resp = self.session.post(
+            f"{self.host}/api/datasets/delete_many/",
+            json=ids,
+        )
+        resp.raise_for_status()
 
     def get_competition_creation_status(self, status_id: int) -> dict[str, Any]:
         self._ensure_auth()

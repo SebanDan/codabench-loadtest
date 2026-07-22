@@ -60,8 +60,5 @@ def on_test_start(environment, **kwargs):
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
-    # Delete the competition first: its CASCADE FKs remove the participants and
-    # submissions that reference the pool users. Those references use
-    # on_delete=DO_NOTHING, so users cannot be hard-deleted while they exist.
     environment.env_setup.delete_competition(environment.competition_id)
     environment.env_setup.delete_users(environment.user_pool)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from time import sleep
 from typing import TYPE_CHECKING
 
-from locust import HttpUser, between, task
+from locust import HttpUser, between, task, tag
 
 from codabench_loadtest.scenarios.utils import (
     authenticate,
@@ -40,6 +40,7 @@ class SubmitterUser(HttpUser):
             name=submission_zip.zip_name + custom_name,
         )
 
+    @tag("normal")
     @task
     def submit_task(self):
         submission_zip: SubmissionZip = (
@@ -47,6 +48,7 @@ class SubmitterUser(HttpUser):
         )
         self._submit(submission_zip)
 
+    @tag("clumsy")
     @task
     def clumsy_submit_task(self):
         submission_zip: SubmissionZip = (
@@ -57,6 +59,7 @@ class SubmitterUser(HttpUser):
         sleep(1.75)
         self._submit(submission_zip, custom_name="+clumsy_second_submit")
 
+    @tag("heavy")
     @task
     def heavy_submit_task(self):
         submission_zip: SubmissionZip = (

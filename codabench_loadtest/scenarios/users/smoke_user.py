@@ -1,4 +1,4 @@
-from locust import HttpUser, between, task
+from locust import HttpUser, between, task, tag
 
 from codabench_loadtest.scenarios.utils import authenticate
 
@@ -10,6 +10,7 @@ class SmokeUser(HttpUser):
         user = self.environment.user_pool.get_random_user()
         authenticate(self.client, user.username, user.password)
 
+    @tag("normal")
     @task
     def smoke_task(self):
         self.client.get("/api/my_profile/")

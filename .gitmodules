@@ -1,3 +1,0 @@
-[submodule "infra/codabench"]
-	path = infra/codabench
-	url = https://github.com/codalab/codabench.git

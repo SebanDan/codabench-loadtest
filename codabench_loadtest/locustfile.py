@@ -40,6 +40,7 @@ def on_test_start(environment, **kwargs):
 
     # On test start, filter the users based on the selected tasks (filtered on tags) from the configuration file.
     environment.user_classes = [uc for uc in environment.user_classes if uc.tasks]
+
     result = environment.env_setup.create_competition(
         bundle_path=DATA_DIR / environment.codabench_settings.competition_bundle
     )

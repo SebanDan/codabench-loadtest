@@ -4,16 +4,12 @@ from time import sleep
 from typing import TYPE_CHECKING
 
 from locust import HttpUser, between, tag, task
+from pydantic import SecretStr
 
-from codabench_loadtest.scenarios.utils import (
-    authenticate,
-    cancel_submission,
-    create_submission,
-    upload_submission,
-)
+from codabench_loadtest.common import get_custom_codabench_locust_client
 
 if TYPE_CHECKING:
-    from codabench_loadtest.models import SubmissionZip
+    from codabench_loadtest.models import SubmissionZip, User
 
 
 class SubmitterUser(HttpUser):
@@ -22,25 +18,27 @@ class SubmitterUser(HttpUser):
     wait_time = between(1, 3)
 
     def on_start(self):
-        user = self.environment.user_pool.get_random_user()
-        authenticate(self.client, user.username, user.password)
+        user: User = self.environment.user_pool.get_random_user()
+        self.codabench_client = get_custom_codabench_locust_client(
+            client=self.client,
+            settings=self.environment.codabench_settings,
+            update={"username": user.username, "password": SecretStr(user.password)},
+        )
+        self.codabench_client.login()
 
     def _submit(self, submission_zip: SubmissionZip, custom_name: str = ""):
-        data = upload_submission(
-            self.client,
+        data = self.codabench_client.upload_submission(
             self.environment.competition_id,
             zip_bytes=submission_zip.get_zip_bytes(),
             zip_name=submission_zip.zip_name,
             size=submission_zip.bytes_size(),
         )
-        submitted = create_submission(
-            self.client,
+        return self.codabench_client.create_submission(
             data["key"],
             phase=self.environment.competition_phase_id,
             name=submission_zip.zip_name + custom_name,
         )
         # wait_submission_completed # :TODO: add a polling method to wait to completion
-        return submitted
 
     @tag("normal")
     @task
@@ -57,7 +55,7 @@ class SubmitterUser(HttpUser):
             self.environment.submission_pool.get_random_submission_zip()
         )
         first = self._submit(submission_zip, custom_name="+clumsy_first_submit")
-        cancel_submission(self.client, first["id"])
+        self.codabench_client.cancel_submission(first["id"])
         sleep(1.75)
         self._submit(submission_zip, custom_name="+clumsy_second_submit")
 

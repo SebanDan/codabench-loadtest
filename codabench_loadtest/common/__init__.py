@@ -1,4 +1,4 @@
-from codabench_loadtest.common.api_client import CodabenchClient
+from codabench_loadtest.common.base_api_client import CodabenchClient
 from codabench_loadtest.common.config import Settings
 from codabench_loadtest.common.environment_setup import EnvironmentSetup
 from codabench_loadtest.common.locust_api_client import (

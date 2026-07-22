@@ -3,7 +3,7 @@ from __future__ import annotations
 from time import sleep
 from typing import TYPE_CHECKING
 
-from locust import HttpUser, between, task, tag
+from locust import HttpUser, between, tag, task
 
 from codabench_loadtest.scenarios.utils import (
     authenticate,

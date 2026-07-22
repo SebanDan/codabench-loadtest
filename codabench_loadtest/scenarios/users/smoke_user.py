@@ -1,7 +1,7 @@
-from locust import HttpUser, between, task, tag
+from locust import HttpUser, between, tag, task
 
 from codabench_loadtest.scenarios.utils import authenticate
-
+from codabench_loadtest.common import CodabenchClient
 
 class SmokeUser(HttpUser):
     wait_time = between(1, 2)

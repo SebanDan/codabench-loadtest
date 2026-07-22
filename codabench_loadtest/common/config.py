@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -43,7 +45,7 @@ class Settings(BaseSettings):
     rabbitmq_password: SecretStr = SecretStr("")
 
     @model_validator(mode="after")
-    def _check_poll_timeout_gt_interval(self) -> "Settings":
+    def _check_poll_timeout_gt_interval(self) -> Settings:
         if self.poll_timeout <= self.poll_interval:
             raise ValueError(
                 f"poll_timeout ({self.poll_timeout}s) must be strictly greater "

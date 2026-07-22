@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, BinaryIO, Mapping
-
-from locust.clients import HttpSession
+from typing import TYPE_CHECKING, Any, BinaryIO, Mapping
 
 from codabench_loadtest.common.base_api_client import CodabenchClient
-from codabench_loadtest.common.config import Settings
+
+if TYPE_CHECKING:
+    from locust.clients import HttpSession
+
+    from codabench_loadtest.common.config import Settings
 
 
 def get_custom_codabench_locust_client(

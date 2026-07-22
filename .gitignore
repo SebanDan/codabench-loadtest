@@ -81,3 +81,8 @@ locust.conf
 *.env
 *.html
 *locust.conf
+
+infra/*
+.agitmodules
+.gitmodules
+infra/codabench

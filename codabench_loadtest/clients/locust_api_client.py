@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, BinaryIO, Mapping
 
-from codabench_loadtest.common.base_api_client import CodabenchClient
+from codabench_loadtest.clients import CodabenchClient
 
 if TYPE_CHECKING:
     from locust.clients import HttpSession

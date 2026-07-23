@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from locust import HttpUser, between, tag, task
 from pydantic import SecretStr
 
-from codabench_loadtest.common import get_custom_codabench_locust_client
+from codabench_loadtest.clients import get_custom_codabench_locust_client
 
 if TYPE_CHECKING:
     from codabench_loadtest.models import SubmissionZip, User

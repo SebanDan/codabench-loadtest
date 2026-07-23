@@ -92,8 +92,8 @@ exclude = [
 pythonVersion = "3.13"
 typeCheckingMode = "basic"
 exclude = [
-    "tests/",
-    "data/",
+    "**/tests/",
+    "**/data/",
 ]
 
 [tool.coverage.run]

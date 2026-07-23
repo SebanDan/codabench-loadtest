@@ -55,6 +55,11 @@ def on_test_start(environment, **kwargs):
             competition_id=environment.competition_id
         )
     )
+    environment.env_setup.dataset_ids.extend(
+        environment.env_setup.codabench_client.list_dataset_ids(
+            kind="competition_bundle"
+        )
+    )
     user_pool = environment.env_setup.create_user_pools(
         size=environment.parsed_options.num_users
     )
@@ -73,3 +78,4 @@ def on_test_stop(environment, **kwargs):
     # submissions that reference the users.
     environment.env_setup.delete_competition(environment.competition_id)
     environment.env_setup.delete_users(environment.user_pool)
+    environment.env_setup.delete_datasets()

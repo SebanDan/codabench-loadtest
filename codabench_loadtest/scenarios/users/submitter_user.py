@@ -7,6 +7,7 @@ from locust import HttpUser, between, tag, task
 from pydantic import SecretStr
 
 from codabench_loadtest.clients import get_custom_codabench_locust_client
+from codabench_loadtest.clients.base_api_client import FAILED
 
 if TYPE_CHECKING:
     from codabench_loadtest.models import SubmissionZip, User
@@ -54,7 +55,15 @@ class SubmitterUser(HttpUser):
             self.codabench_client.poll_until_done(
                 self.codabench_client.get_submission, submission["id"]
             )
+        self.raise_on_submission_failure(submission_id=submission["id"])
         return submission
+
+    def raise_on_submission_failure(self, submission_id: int):
+        submission = self.codabench_client.get_submission(submission_id)
+        if submission["status"] == FAILED:
+            raise RuntimeError(
+                f"Submission {submission_id} failed with message: {submission['message']}"
+            )
 
     @tag("normal")
     @task

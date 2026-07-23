@@ -1,6 +1,7 @@
+from decimal import Decimal, getcontext
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from decimal import Decimal, getcontext
 
 
 class Model:
@@ -8,6 +9,7 @@ class Model:
     A simple baseline model for digit classification using Scikit-learn.
     Uses a Random Forest Classifier.
     """
+
     def __init__(self):
         # A light-weight Random Forest with 10 trees for fast execution
         self.clf = RandomForestClassifier(n_estimators=10, random_state=42)
@@ -22,8 +24,10 @@ class Model:
         """
         # Flatten images from (N, 28, 28) to (N, 784) for sklearn
         X_train_flat = X_train.reshape(X_train.shape[0], -1)
-        
-        print(f"[*] Training RandomForestClassifier on {X_train_flat.shape[0]} samples...")
+
+        print(
+            f"[*] Training RandomForestClassifier on {X_train_flat.shape[0]} samples..."
+        )
         self.clf.fit(X_train_flat, y_train)
         self.compute_pi(precision=10)
         print("[+] Training complete.")
@@ -31,10 +35,10 @@ class Model:
     def predict(self, X_test):
         """
         Predict labels for the test set using the trained classifier.
-        
+
         Args:
             X_test (np.ndarray): Test images (M, 28, 28)
-            
+
         Returns:
             np.ndarray: Predicted labels (M,)
         """

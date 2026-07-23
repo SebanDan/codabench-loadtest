@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from codabench_loadtest.common import CodabenchClient, Settings
+from codabench_loadtest.clients import CodabenchClient
+from codabench_loadtest.common import Settings
 from codabench_loadtest.models import SubmissionPool, User, UserPool
 
 

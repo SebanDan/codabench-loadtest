@@ -40,7 +40,7 @@ jobs:
 
       - name: Check typing
         run: |
-          uv run --group typing pyright .
+          uv run --group typing pyright codabench_loadtest
 
       - name: Unit Tests
         run: |

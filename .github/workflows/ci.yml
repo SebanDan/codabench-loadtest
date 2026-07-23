@@ -21,7 +21,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.13
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -31,18 +31,18 @@ jobs:
 
       - name: Check Formatting
         run: |
-          uv run --only-group format black --check codabench_loadtest
-          uv run --only-group format isort --check codabench_loadtest
+          uv run --only-group format black --check .
+          uv run --only-group format isort --check .
 
       - name: Check linting
         run: |
-          uv run --only-group lint ruff check codabench_loadtest
+          uv run --only-group lint ruff check .
 
       - name: Check typing
         run: |
-          uv run --group typing pyright codabench_loadtest
+          uv run --group typing pyright .
 
       - name: Unit Tests
         run: |
-          uv run --group test coverage run --source codabench_loadtest -m pytest tests
+          uv run --group test coverage run --source . -m pytest tests
           uv run --group test coverage report

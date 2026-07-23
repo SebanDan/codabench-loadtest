@@ -19,7 +19,7 @@ def _(parser):
         type=str,
         default="local",
         choices=["local", "prod"],
-        help="Environnement cible (surcharge CODABENCH_ENV si fourni)",
+        help="Environment file name to use for the load test (local or prod).",
     )
 
 

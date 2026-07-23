@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -308,7 +307,7 @@ class CodabenchClient:
             page += 1
         return ids
 
-    def delete_datasets(self, dataset_ids: Iterable[int]) -> None:
+    def delete_datasets(self, dataset_ids: list[int]) -> None:
         """Bulk-delete datasets owned by the authenticated user."""
         ids = list(dataset_ids)
         if not ids:

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml) [![Python versions](https://img.shields.io/badge/python-3.13-blue)](https://docs.python.org/3/whatsnew/)
 
-This repository provides load testing scenarios for the codabench platform based on locust.
+This repository provides load testing scenarios for the codabench platform based on [Locust](https://locust.io).
 
 ## Prerequisites
 

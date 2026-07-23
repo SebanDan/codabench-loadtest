@@ -46,10 +46,16 @@ cp locust.example.conf locust.conf
 
 *Note: As the locust test will generate assets on the platform it is required to provide a valid admin username and password in the `.env` file*
 
-Then run :
+Then run the following command to execute locust with your configuration:
 
 ```bash
 uv run locust
+```
+
+It is possible to filter on a specific user (for instance here the SmokeUser) by running.
+
+```bash
+uv run locust SmokeUser
 ```
 
 ### How to manage the bundles ?
@@ -79,9 +85,9 @@ This user is used to create different kind of submission on the platform by runn
 
 ***Note***: *All the submission task select randomly a submission bundle available in the submission pool allowing all the task to submit classical or heavy compute submission.*
 
-- **submit_task**: This task select a submission bundle available in the submission pool and submit it to the competition
-- **clumsy_submit_task**: This task select a submission bundle, submit it, cancel it, lauch a new submission and re-run the previously submitted bundle.
-- **heavy_submit_task**: This task select a submission bundle and expand it content by 1Go before submitting it.
+- **submit_task**: This task select a submission bundle available in the submission pool and submit it to the competition. It can be filtered by using the `normal` tag.
+- **clumsy_submit_task**: This task select a submission bundle, submit it, cancel it, lauch a new submission and re-run the previously submitted bundle. It can be filtered by using the `clumsy` tag.
+- **heavy_submit_task**: This task select a submission bundle and expand it content by 1Go before submitting it. It can be filtered by using the `heavy` tag.
 
 ### Reports
 

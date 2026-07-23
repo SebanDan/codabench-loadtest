@@ -19,8 +19,7 @@ class EnvironmentSetup:
         Create a pool of active users for load testing.
 
         Users are created through the Django admin, so they are active
-        immediately and require no e-mail validation. Locust users can then
-        pick a random user from the returned pool.
+        immediately and require no e-mail validation.
         """
         pool = UserPool()
         for _ in range(size):

@@ -13,6 +13,7 @@ ENV_DIR = ROOT_DIR / ".github" / "env"
 
 @events.init_command_line_parser.add_listener
 def _(parser):
+    """Add custom command line arguments to the Locust parser."""
     parser.add_argument(
         "--env",
         type=str,
@@ -24,6 +25,7 @@ def _(parser):
 
 @events.init.add_listener
 def on_init(environment, **kwargs):
+    """Initialize the environment with the required variables and settings."""
     env_file = ENV_DIR / f"{environment.parsed_options.env}.env"
     codabench_settings = Settings(_env_file=env_file)  # type: ignore[call-arg]
     environment.codabench_settings = codabench_settings
@@ -37,6 +39,9 @@ def on_init(environment, **kwargs):
 
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
+    """Handle actions to perform at the start of the test.
+    This includes filtering user classes based on selected tasks, creating a competition, registering users.
+    """
 
     # On test start, filter the users based on the selected tasks (filtered on tags) from the configuration file.
     environment.user_classes = [uc for uc in environment.user_classes if uc.tasks]
@@ -61,8 +66,10 @@ def on_test_start(environment, **kwargs):
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
+    """Handle actions to perform at the end of the test.
+    This includes deleting the competition and the user pool created for the test.
+    """
     # Delete the competition first: its CASCADE FKs remove the participants and
-    # submissions that reference the pool users. Those references use
-    # on_delete=DO_NOTHING, so users cannot be hard-deleted while they exist.
+    # submissions that reference the users.
     environment.env_setup.delete_competition(environment.competition_id)
     environment.env_setup.delete_users(environment.user_pool)

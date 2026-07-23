@@ -18,7 +18,7 @@ def get_custom_codabench_locust_client(
 
 
 class CodabenchLocustClient(CodabenchClient):
-    """Reusable client for the Codabench REST API."""
+    """Reusable client for the Codabench REST API dedicated to Locust load testing."""
 
     def __init__(
         self,

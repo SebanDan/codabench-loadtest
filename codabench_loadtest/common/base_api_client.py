@@ -295,7 +295,7 @@ class CodabenchClient:
         while True:
             resp = self.session.get(
                 f"{self.host}/api/datasets/",
-                params={"_type": kind, "page_size": "1000", "page": str(page)},
+                params={"_type": kind, "page_size": "all", "page": str(page)},
             )
             resp.raise_for_status()
             payload = resp.json()

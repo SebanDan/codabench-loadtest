@@ -26,7 +26,11 @@ class SubmitterUser(HttpUser):
         )
         self.codabench_client.login()
 
-    def _submit(self, submission_zip: SubmissionZip, custom_name: str = ""):
+    def on_stop(self):
+        """Register the submission IDs uploaded during the test to the environment for later cleanup."""
+        self.environment.env_setup.submissions_ids.extend(self.codabench_client.list_dataset_ids(kind="submission"))
+
+    def _submit(self, submission_zip: SubmissionZip, *, custom_name: str = "", wait_for_completion: bool = True):
         data = self.codabench_client.upload_submission(
             self.environment.competition_id,
             zip_bytes=submission_zip.get_zip_bytes(),
@@ -38,9 +42,10 @@ class SubmitterUser(HttpUser):
             phase=self.environment.competition_phase_id,
             name=submission_zip.zip_name + custom_name,
         )
-        self.codabench_client.poll_until_done(
-            self.codabench_client.get_submission, submission["id"]
-        )
+        if wait_for_completion:
+            self.codabench_client.poll_until_done(
+                self.codabench_client.get_submission, submission["id"]
+            )
         return submission
 
     @tag("normal")
@@ -57,9 +62,9 @@ class SubmitterUser(HttpUser):
         submission_zip: SubmissionZip = (
             self.environment.submission_pool.get_random_submission_zip()
         )
-        first = self._submit(submission_zip, custom_name="+clumsy_first_submit")
+        first = self._submit(submission_zip, custom_name="+clumsy_first_submit", wait_for_completion=False)
         self.codabench_client.cancel_submission(first["id"])
-        sleep(1.75)
+        sleep(2.5)
         self._submit(submission_zip, custom_name="+clumsy_second_submit")
 
     @tag("heavy")

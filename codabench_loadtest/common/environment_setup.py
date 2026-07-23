@@ -13,6 +13,7 @@ class EnvironmentSetup:
         self.settings = settings
         self.codabench_client = CodabenchClient(config=settings)
         self.codabench_client.login()
+        self.submissions_ids = []
 
     def create_user_pools(self, size: int = 10) -> UserPool:
         """
@@ -60,5 +61,7 @@ class EnvironmentSetup:
 
     def delete_competition(self, competition_id: int):
         self.codabench_client.delete_competition(competition_id)
-        # competition_dataset_ids = self.codabench_client.list_dataset_ids(kind="bundle")
-        # self.codabench_client.delete_datasets(competition_dataset_ids)
+
+    def delete_submissions(self):
+        """Delete all submissions that were uploaded during the load test."""
+        self.codabench_client.delete_datasets(dataset_ids=self.submissions_ids)

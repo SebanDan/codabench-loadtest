@@ -73,3 +73,4 @@ def on_test_stop(environment, **kwargs):
     # submissions that reference the users.
     environment.env_setup.delete_competition(environment.competition_id)
     environment.env_setup.delete_users(environment.user_pool)
+    environment.env_setup.delete_submissions()

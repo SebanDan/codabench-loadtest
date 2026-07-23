@@ -24,7 +24,7 @@ TERMINAL_STATUSES = frozenset({FINISHED, FAILED, CANCELLED})
 
 
 class CodabenchClient:
-    """A basic client for the Codabench REST API that does not require Locust."""
+    """A basic client for the Codabench REST API."""
 
     def __init__(self, config: Settings) -> None:
         self.host = config.host.rstrip("/")

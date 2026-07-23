@@ -33,12 +33,15 @@ class SubmitterUser(HttpUser):
             zip_name=submission_zip.zip_name,
             size=submission_zip.bytes_size(),
         )
-        return self.codabench_client.create_submission(
+        submission = self.codabench_client.create_submission(
             data["key"],
             phase=self.environment.competition_phase_id,
             name=submission_zip.zip_name + custom_name,
         )
-        # wait_submission_completed # :TODO: add a polling method to wait to completion
+        self.codabench_client.poll_until_done(
+            self.codabench_client.get_submission, submission["id"]
+        )
+        return submission
 
     @tag("normal")
     @task

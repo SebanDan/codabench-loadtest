@@ -4,7 +4,8 @@ import time
 from pathlib import Path
 from typing import Any
 
-import requests
+from pydantic import SecretStr
+from requests import Session
 
 from codabench_loadtest.common.config import Settings
 from codabench_loadtest.scenarios.utils import validate_competition_bundle
@@ -28,10 +29,26 @@ class CodabenchClient:
     def __init__(self, config: Settings) -> None:
         self.host = config.host.rstrip("/")
         self.settings = config
-        self.session = requests.Session()
+        self.session = Session()
         self._authenticated = False
 
     # ------------------------------------------------------------------ auth
+
+    def get_api_token(self, username: str, password: str | SecretStr) -> str:
+        """Return the API token for the provided username/password"""
+        resp = self.session.post(
+            f"{self.host}/api/api-token-auth/",
+            json={
+                "username": username,
+                "password": (
+                    password
+                    if isinstance(password, str)
+                    else password.get_secret_value()
+                ),
+            },
+        )
+        resp.raise_for_status()
+        return resp.json()["token"]
 
     def login(self) -> None:
         self.settings.require_auth()
@@ -42,20 +59,34 @@ class CodabenchClient:
             self._authenticated = True
             return
 
-        resp = self.session.post(
-            f"{self.host}/api/api-token-auth/",
-            json={
-                "username": self.settings.username,
-                "password": self.settings.password.get_secret_value(),
-            },
-        )
-        resp.raise_for_status()
-        self.session.headers.update({"Authorization": f"Token {resp.json()['token']}"})
+        token = self.get_api_token(self.settings.username, self.settings.password)
+        self.session.headers.update({"Authorization": f"Token {token}"})
         self._authenticated = True
 
     def _ensure_auth(self) -> None:
         if not self._authenticated:
             self.login()
+
+    def django_admin_login(self) -> Session:
+        """Login to the Django admin using a dedicated session.
+
+        This is used for creating/deleting users via the admin interface.
+        """
+        admin_session = Session()
+
+        login_url = f"{self.host}/admin/login/"
+        admin_session.get(login_url)  # sets the csrftoken cookie
+        admin_session.post(
+            login_url,
+            data={
+                "username": self.settings.username,
+                "password": self.settings.password.get_secret_value(),
+                "csrfmiddlewaretoken": admin_session.cookies["csrftoken"],
+                "next": "/admin/",
+            },
+            headers={"Referer": login_url},
+        ).raise_for_status()
+        return admin_session
 
     def create_user(self, username: str, password: str, email: str) -> dict[str, Any]:
         """Create an active Codabench user via the Django admin.
@@ -64,20 +95,8 @@ class CodabenchClient:
         leak into the token-authenticated API session (which would make DRF
         enforce CSRF on subsequent API writes).
         """
-        admin = requests.Session()
 
-        login_url = f"{self.host}/admin/login/"
-        admin.get(login_url)  # sets the csrftoken cookie
-        admin.post(
-            login_url,
-            data={
-                "username": self.settings.username,
-                "password": self.settings.password.get_secret_value(),
-                "csrfmiddlewaretoken": admin.cookies["csrftoken"],
-                "next": "/admin/",
-            },
-            headers={"Referer": login_url},
-        ).raise_for_status()
+        admin = self.django_admin_login()
 
         add_url = f"{self.host}/admin/profiles/user/add/"
         admin.get(add_url)  # refresh the csrftoken cookie
@@ -123,20 +142,7 @@ class CodabenchClient:
         if not user_ids:
             return
 
-        admin = requests.Session()
-
-        login_url = f"{self.host}/admin/login/"
-        admin.get(login_url)  # sets the csrftoken cookie
-        admin.post(
-            login_url,
-            data={
-                "username": self.settings.username,
-                "password": self.settings.password.get_secret_value(),
-                "csrfmiddlewaretoken": admin.cookies["csrftoken"],
-                "next": "/admin/",
-            },
-            headers={"Referer": login_url},
-        ).raise_for_status()
+        admin = self.django_admin_login()
 
         changelist_url = f"{self.host}/admin/profiles/user/"
         admin.get(changelist_url)  # refresh the csrftoken cookie
@@ -219,14 +225,9 @@ class CodabenchClient:
         self, username: str, password: str, competition_id: int
     ) -> dict[str, Any]:
         """Register a user as a participant of the competition."""
-        session = requests.Session()
-        resp = session.post(
-            f"{self.host}/api/api-token-auth/",
-            json={"username": username, "password": password},
-        )
-        resp.raise_for_status()
-        token = resp.json()["token"]
-        resp = session.post(
+
+        token = self.get_api_token(username, password)
+        resp = Session().post(
             f"{self.host}/api/competitions/{competition_id}/register/",
             headers={"Authorization": f"Token {token}"},
         )

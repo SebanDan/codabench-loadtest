@@ -66,7 +66,7 @@ The submission bundle are located in the `/data/submissions` folder. When lauchi
 
 ### Generated assets
 
-When running the locustfile and running the tests, several assets while be gererated on the platform.
+When running the locustfile and running the tests, several assets will be gererated on the platform.
 Using the competition bundle, locust will generate a new competition and a pool of users. The pool of user will leverage the parameter `users` in the `locust.conf` file and create the same amount on the platform. When running a scenario, locust will authenticate as one of the user in the pool to run the tasks.
 
 At the end of the test, the platform will be cleared by deleting the previously users and the competition.

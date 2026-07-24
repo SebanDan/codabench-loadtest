@@ -1,8 +1,14 @@
+---
+title: Home
+layout: home
+nav_order: 1
+---
+
 # Welcome
 
 Welcome to the codabench-loadtest project documentation.
 
-Please consult the project readme [Project ](../README.md) for quick installation and usages.
+Please consult the [Project Readme](https://github.com/SebanDan/codabench-loadtest) for quick installation and usages.
 
 # Deploying on the cloud
 

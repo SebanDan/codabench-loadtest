@@ -1,0 +1,37 @@
+#!/bin/bash
+set -euo pipefail
+
+exec > /var/log/playwright-setup.log 2>&1
+
+# --- Install git + Chromium system deps ---
+dnf install -y git \
+  nss atk cups-libs at-spi2-atk libdrm mesa-libgbm \
+  gtk3 libXcomposite libXdamage libXrandr alsa-lib pango
+
+# --- Install uv ---
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> /etc/profile.d/uv.sh
+
+# --- Install Python 3.13 via uv ---
+uv python install 3.13
+
+# --- Clone repo ---
+cd /opt
+git clone --branch ${repo_branch} ${repo_url} codabench-loadtest
+cd codabench-loadtest
+
+# --- Install dependencies (including playwright group) ---
+uv sync --group frontend
+
+# --- Install Chromium browser ---
+uv run playwright install chromium
+
+# --- Write environment config ---
+cat > .env <<'ENVEOF'
+CODABENCH_HOST=http://${alb_dns}
+LOCUST_REGION=${region_name}
+RESULTS_BUCKET=${results_bucket}
+ENVEOF
+
+echo "Playwright ready. Run tests via SSM."

@@ -86,3 +86,4 @@ infra/*
 .agitmodules
 .gitmodules
 infra/codabench
+.DS_Store

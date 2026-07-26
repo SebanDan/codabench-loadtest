@@ -250,6 +250,8 @@ source = { editable = "." }
 dependencies = [
     { name = "faker" },
     { name = "locust" },
+    { name = "locust-plugins" },
+    { name = "playwright" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
@@ -297,6 +299,8 @@ typing = [
 requires-dist = [
     { name = "faker", specifier = ">=40.31.0" },
     { name = "locust", specifier = ">=2.45.0" },
+    { name = "locust-plugins", specifier = ">=5.0.3" },
+    { name = "playwright", specifier = ">=1.61.0" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
@@ -701,6 +705,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f1/8f/54b1dce68ba31c86e6d4b3e0e43580ea4729d2b2de80a76eeea8232fcce5/locust-2.46.0.tar.gz", hash = "sha256:59629035d26cc70a1d8a94085cf71f115bb80785a1577931b44ed9999305713f", size = 1478125, upload-time = "2026-07-19T14:48:30.865Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b5/9c/02a289f9fb17c4ce226a15c2e01003d1d3f9fc4b2879866dd8bd298a195f/locust-2.46.0-py3-none-any.whl", hash = "sha256:f5a90bb191d28f7e524bb52ddc702d84b2408a2c72e62dab6a9580f5bf5b0b3c", size = 1497772, upload-time = "2026-07-19T14:48:29.023Z" },
+]
+
+[[package]]
+name = "locust-plugins"
+version = "5.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "locust" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/32/ce/fd36d92034357e26bd29df411d0ef15beff8717a09d89990c06adff62a5a/locust_plugins-5.0.3.tar.gz", hash = "sha256:595651a134abc5171836ccbcbce1841960b272312a90289a00fc1eb4db997353", size = 1397135, upload-time = "2026-06-12T10:01:55.455Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f4/92/d07958bf1fb70cbbb0987be522684eee612fb42203160d008c356a36a37f/locust_plugins-5.0.3-py3-none-any.whl", hash = "sha256:6ca1593b5d4e940c490ad3f9048684ede588804eee362bf3b30c4046f007888a", size = 1390466, upload-time = "2026-06-12T10:01:53.336Z" },
 ]
 
 [[package]]

@@ -7,7 +7,7 @@ from codabench_loadtest.clients import CodabenchClient
 if TYPE_CHECKING:
     from locust.clients import HttpSession
 
-    from codabench_loadtest.common.config import Settings
+    from codabench_loadtest.setup.config import Settings
 
 
 def get_custom_codabench_locust_client(

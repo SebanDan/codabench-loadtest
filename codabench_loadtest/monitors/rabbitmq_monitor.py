@@ -5,7 +5,7 @@ with queue depth, consumer count, publish/deliver rates, and node memory.
 Designed to run in parallel with Locust on the master instance.
 
 Usage (standalone):
-    uv run python -m codabench_loadtest.common.rabbitmq_monitor \
+    uv run python -m codabench_loadtest.monitors.rabbitmq_monitor \
         --duration 600 --interval 5 --output runs/rabbit_metrics.csv
 
 Usage (from Python):
@@ -26,7 +26,7 @@ from typing import Any, ClassVar
 
 import requests
 
-from codabench_loadtest.common.config import Settings
+from codabench_loadtest.setup import Settings
 
 
 @dataclass

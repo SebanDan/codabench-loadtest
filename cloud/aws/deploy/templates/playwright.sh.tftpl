@@ -22,8 +22,8 @@ cd /opt
 git clone --branch ${repo_branch} ${repo_url} codabench-loadtest
 cd codabench-loadtest
 
-# --- Install dependencies (including playwright group) ---
-uv sync --group frontend
+# --- Install dependencies ---
+uv sync
 
 # --- Install Chromium browser ---
 uv run playwright install chromium

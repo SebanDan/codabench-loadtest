@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from typing import TYPE_CHECKING
 
@@ -8,12 +10,10 @@ from locust_plugins.users.playwright import event  # type: ignore
 from locust_plugins.users.playwright import pw  # type: ignore
 from playwright.async_api import expect  # type: ignore
 
-from codabench_loadtest.models import SubmissionZip, User
-from codabench_loadtest.models.competitions import CompetitionZip
 from codabench_loadtest.scenarios.tasks.playwright import login
 
 if TYPE_CHECKING:
-    from codabench_loadtest.models import SubmissionZip
+    from codabench_loadtest.models import CompetitionZip, SubmissionZip, User
 
 
 class UIUser(PlaywrightUser):

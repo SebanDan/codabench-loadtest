@@ -6,12 +6,10 @@ from typing import TYPE_CHECKING
 from locust import HttpUser, between, tag, task
 
 from codabench_loadtest.clients.base_api_client import FAILED
-from codabench_loadtest.models import SubmissionZip
-from codabench_loadtest.models.competitions import CompetitionZip
 from codabench_loadtest.scenarios.tasks.common import BaseUser
 
 if TYPE_CHECKING:
-    from codabench_loadtest.models import SubmissionZip
+    from codabench_loadtest.models import CompetitionZip, SubmissionZip
 
 
 class SubmitterUser(BaseUser, HttpUser):

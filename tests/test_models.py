@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from codabench_loadtest.models.competitions import CompetitionPool, CompetitionZip
+from codabench_loadtest.models import CompetitionPool, CompetitionZip
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 

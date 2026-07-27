@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from codabench_loadtest.clients import CodabenchClient
-from codabench_loadtest.models import SubmissionPool, User, UserPool
+from codabench_loadtest.models import CompetitionPool, User, UserPool
 from codabench_loadtest.setup import Settings
 
 
@@ -53,8 +53,12 @@ class EnvironmentSetup:
         phases = competition_data["phases"]
         return phases[0].get("id") or competition_id
 
-    def get_submission_pool(self, submission_dir: Path):
-        return SubmissionPool.from_dir(submission_dir)
+    def get_competition_pool(
+        self, competition_dir: Path, competition_filter: list[str] | None = None
+    ) -> CompetitionPool:
+        return CompetitionPool.from_dir(
+            competition_dir, competition_filter=competition_filter
+        )
 
     def delete_users(self, user_pool: UserPool):
         user_ids = [user.id for user in user_pool.users if user.id is not None]

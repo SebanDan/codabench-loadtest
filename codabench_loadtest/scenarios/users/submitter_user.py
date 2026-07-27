@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from locust import HttpUser, between, tag, task
 
 from codabench_loadtest.clients.base_api_client import FAILED
+from codabench_loadtest.models import SubmissionZip
+from codabench_loadtest.models.competitions import CompetitionZip
 from codabench_loadtest.scenarios.tasks.common import BaseUser
 
 if TYPE_CHECKING:
@@ -29,21 +31,24 @@ class SubmitterUser(BaseUser, HttpUser):
 
     def _submit(
         self,
+        competition: CompetitionZip,
         submission_zip: SubmissionZip,
         *,
         custom_name: str = "",
         wait_for_completion: bool = True,
     ):
+        request_name = f"{competition.name} {submission_zip.zip_name} {custom_name}"
         data = self.codabench_client.upload_submission(
-            self.environment.competition_id,
+            competition.id,  # type: ignore
             zip_bytes=submission_zip.get_zip_bytes(),
             zip_name=submission_zip.zip_name,
             size=submission_zip.bytes_size(),
+            custom_name=request_name,
         )
         submission = self.codabench_client.create_submission(
             data["key"],
-            phase=self.environment.competition_phase_id,
-            name=submission_zip.zip_name + custom_name,
+            phase=competition.phase_id,
+            name=request_name,
         )
         if wait_for_completion:
             self.codabench_client.poll_until_done(
@@ -62,31 +67,44 @@ class SubmitterUser(BaseUser, HttpUser):
     @tag("normal")
     @task
     def submit_task(self):
-        submission_zip: SubmissionZip = (
-            self.environment.submission_pool.get_random_submission_zip()
+
+        competition_zip: CompetitionZip = (
+            self.environment.competition_pool.get_random_competition()
         )
-        self._submit(submission_zip)
+        submission_zip: SubmissionZip = competition_zip.get_random_submission_zip()
+        self._submit(competition=competition_zip, submission_zip=submission_zip)
 
     @tag("clumsy")
     @task
     def clumsy_submit_task(self):
-        submission_zip: SubmissionZip = (
-            self.environment.submission_pool.get_random_submission_zip()
+        competition_zip: CompetitionZip = (
+            self.environment.competition_pool.get_random_competition()
         )
+        submission_zip: SubmissionZip = competition_zip.get_random_submission_zip()
         first = self._submit(
-            submission_zip,
+            competition=competition_zip,
+            submission_zip=submission_zip,
             custom_name="+clumsy_first_submit",
             wait_for_completion=False,
         )
         self.codabench_client.cancel_submission(first["id"])
         sleep(2.5)
-        self._submit(submission_zip, custom_name="+clumsy_second_submit")
+        self._submit(
+            competition=competition_zip,
+            submission_zip=submission_zip,
+            custom_name="+clumsy_second_submit",
+        )
 
     @tag("heavy")
     @task
     def heavy_submit_task(self):
-        submission_zip: SubmissionZip = (
-            self.environment.submission_pool.get_random_submission_zip()
+        competition_zip: CompetitionZip = (
+            self.environment.competition_pool.get_random_competition()
         )
+        submission_zip: SubmissionZip = competition_zip.get_random_submission_zip()
         submission_zip.generate_heavy_space(extra_size_mb=1024, chunk_mb=50)
-        self._submit(submission_zip, custom_name="+heavy_submit")
+        self._submit(
+            competition=competition_zip,
+            submission_zip=submission_zip,
+            custom_name="+heavy_submit",
+        )

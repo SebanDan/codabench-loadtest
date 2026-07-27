@@ -34,6 +34,7 @@ class CodabenchLocustClient(CodabenchClient):
         zip_bytes: bytes | BinaryIO,
         zip_name: str,
         size: int,
+        custom_name: str = "",
     ) -> Any:
 
         with self.session.post(
@@ -45,7 +46,7 @@ class CodabenchLocustClient(CodabenchClient):
                 "file_name": zip_name,
                 "file_size": size,
             },
-            name=f"/api/datasets/ [create submission {zip_name}]",
+            name=f"/api/datasets/ [create submission {custom_name}]",
             catch_response=True,
         ) as response:
             if response.status_code != 201:

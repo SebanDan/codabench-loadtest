@@ -26,7 +26,6 @@ codabench-loadtest/
 │   │   ├── config.py            # Classe used for configuration validation
 │   │   └── environment_setup.py # Orchestrate the environment setup (creates the competition and the users)
 │   └── scenarios/
-│       ├── utils.py             # Helpers
 │       └── users/
 │           ├── smoke_user.py     # Smoke test scenario
 │           ├── submitter_user.py # Submission scenario

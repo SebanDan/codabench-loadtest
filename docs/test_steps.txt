@@ -1,0 +1,178 @@
+==============================================================================
+  ÉTAPES DE TEST — Codabench Load Testing
+==============================================================================
+
+Pré-requis :
+  - AWS CLI configuré (profil codabench ou autre via AWS_PROFILE)
+  - Terraform apply fait (infra/load-generators)
+  - Fichier .env configuré sur les instances (fait automatiquement par user-data)
+  - Credentials RabbitMQ renseignés (CODABENCH_RABBITMQ_USER/PASSWORD)
+
+
+==============================================================================
+  PHASE 1 — Web / API seul (baseline sans queue)
+==============================================================================
+
+But : mesurer les performances de l'API Django seule, sans déclencher
+      de traitement queue/worker. Ça donne la baseline web.
+
+1. Lancer le test smoke (GET endpoints uniquement) :
+
+   ./scripts/run_test.sh --tags normal --users 50 --spawn-rate 5 --duration 10m \
+     --run-name phase1_smoke --paris-only
+
+2. Ouvrir l'UI Locust pour suivre en temps réel :
+
+   aws ssm start-session \
+     --target "$(terraform -chdir=infra/load-generators output -raw paris_locust_master_id)" \
+     --document-name AWS-StartPortForwardingSession \
+     --parameters '{"portNumber":["8089"],"localPortNumber":["8089"]}' \
+     --profile codabench
+
+   -> http://localhost:8089
+
+3. Collecter les résultats :
+
+   ./scripts/collect_results.sh phase1_smoke
+
+4. Vérifier :
+   - p95 response time < 2s
+   - Error rate < 1%
+   - Pas de 5xx
+
+
+==============================================================================
+  PHASE 2 — Queue / Workers seul (soumissions)
+==============================================================================
+
+But : mesurer le comportement de RabbitMQ + compute workers sous charge,
+      et reproduire les 3 failure modes du client.
+
+--- Test 2a : Soumissions normales ---
+
+1. Démarrer le monitoring RabbitMQ (dans un terminal séparé, via SSM) :
+
+   aws ssm start-session \
+     --target "$(terraform -chdir=infra/load-generators output -raw paris_locust_master_id)" \
+     --profile codabench
+
+   # Sur l'instance :
+   cd /opt/codabench-loadtest
+   uv run python -m codabench_loadtest.common.rabbitmq_monitor \
+     --duration 900 --interval 5 --output runs/phase2a_rabbit.csv
+
+2. Lancer le test de soumissions normales :
+
+   ./scripts/run_test.sh --tags normal --users 20 --spawn-rate 2 --duration 15m \
+     --run-name phase2a_normal --paris-only
+
+3. Observer :
+   - Queue depth dans les logs du monitor (doit rester stable, pas exploser)
+   - Consumer count (doit correspondre au nombre de workers Codabench)
+   - Temps de soumission bout en bout dans l'UI Locust
+
+4. Collecter :
+
+   ./scripts/collect_results.sh phase2a_normal
+
+
+--- Test 2b : OOM (modèles lourds) ---
+
+1. Démarrer le monitoring RabbitMQ (même commande, output différent) :
+
+   uv run python -m codabench_loadtest.common.rabbitmq_monitor \
+     --duration 600 --interval 5 --output runs/phase2b_rabbit.csv
+
+2. Lancer le test heavy :
+
+   ./scripts/run_test.sh --tags heavy --users 5 --spawn-rate 1 --duration 10m \
+     --run-name phase2b_heavy --paris-only
+
+3. Observer :
+   - Est-ce que les workers Codabench crashent (OOM) ?
+   - Est-ce que la queue se vide quand même ou les messages restent bloqués ?
+   - Memory RabbitMQ dans le CSV (node_memory_bytes)
+
+4. Collecter :
+
+   ./scripts/collect_results.sh phase2b_heavy
+
+
+--- Test 2c : Annulation de soumissions ---
+
+1. Démarrer le monitoring RabbitMQ :
+
+   uv run python -m codabench_loadtest.common.rabbitmq_monitor \
+     --duration 600 --interval 5 --output runs/phase2c_rabbit.csv
+
+2. Lancer le test clumsy :
+
+   ./scripts/run_test.sh --tags clumsy --users 10 --spawn-rate 2 --duration 10m \
+     --run-name phase2c_clumsy --paris-only
+
+3. Observer :
+   - Est-ce que le worker est libéré après annulation ?
+   - messages_unacked : est-ce qu'il y a des messages orphelins ?
+   - Erreurs Locust : race condition, états incohérents ?
+
+4. Collecter :
+
+   ./scripts/collect_results.sh phase2c_clumsy
+
+
+==============================================================================
+  PHASE 3 — Combined (web + queue, multi-région)
+==============================================================================
+
+But : simuler les conditions réelles d'une compétition avec des utilisateurs
+      du monde entier. On combine Phase 1 + Phase 2.
+
+1. Démarrer le monitoring RabbitMQ :
+
+   uv run python -m codabench_loadtest.common.rabbitmq_monitor \
+     --duration 1800 --interval 5 --output runs/phase3_rabbit.csv
+
+2. Lancer le test sur les 3 régions :
+
+   ./scripts/run_test.sh --tags normal --users 100 --spawn-rate 10 --duration 30m \
+     --run-name phase3_combined
+
+   (Paris + US East + Asia Pacific, tous en parallèle)
+
+3. Observer :
+   - Latence par région dans l'UI Locust (Paris vs US vs Asia)
+   - Queue depth sous 100 users simultanés
+   - Est-ce que RabbitMQ tient ou sature comme lors de l'incident ?
+   - Temps de traitement bout en bout
+
+4. Collecter :
+
+   ./scripts/collect_results.sh phase3_combined
+
+
+==============================================================================
+  APRÈS CHAQUE TEST
+==============================================================================
+
+1. Vérifier les CSV dans runs/<run-name>/ :
+   - *_stats.csv          : p50, p95, p99, error rate
+   - *_failures.csv       : détails des erreurs
+   - *_rabbit.csv         : métriques RabbitMQ (si monitoring lancé)
+
+2. Comparer avec les seuils définis :
+   - p95 < 2s (CODABENCH_MAX_RESPONSE_TIME_P95)
+   - Error rate < 1% (CODABENCH_MAX_ERROR_RATE)
+   - Queue depth stable (pas de croissance continue)
+   - RabbitMQ memory < 80% du watermark
+
+3. Si anomalie détectée :
+   - Documenter dans issues/findings/ (repro steps, profil de charge, attendu vs réel)
+   - Inclure les CSV et screenshots de l'UI Locust
+
+
+==============================================================================
+  ARRÊTER UN TEST
+==============================================================================
+
+   ./scripts/stop_test.sh             # toutes les régions
+   ./scripts/stop_test.sh --paris-only # Paris uniquement

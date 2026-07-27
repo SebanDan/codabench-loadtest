@@ -275,11 +275,24 @@ uv run python queue_metrics_watcher.py --queue submissions --duration 1800
 
 ### RabbitMQ monitoring
 
-> **TODO:** `queue_metrics_watcher.py` does not exist yet. It should run on the
-> Locust master (which has direct access to 10.0.11.11:15672) and record queue
-> depth, consumer count, publish/deliver rates, and RabbitMQ memory usage in
-> parallel with Locust runs. Output should be CSV in `runs/` so it gets collected
-> alongside Locust results by `collect_results.sh`.
+Run the queue metrics collector on the Locust master **in parallel** with
+your Locust test. It polls the RabbitMQ Management API and writes CSV with
+queue depth, consumer count, publish/deliver rates, and node memory.
+
+```bash
+# From an SSM session on the master:
+cd /opt/codabench-loadtest
+uv run python -m codabench_loadtest.common.rabbitmq_monitor \
+  --queue submissions --duration 900 --interval 5 \
+  --output runs/<run-name>_rabbit.csv
+
+# Or monitor all queues (omit --queue):
+uv run python -m codabench_loadtest.common.rabbitmq_monitor \
+  --duration 900 --output runs/<run-name>_rabbit.csv
+```
+
+Requires `CODABENCH_RABBITMQ_URL`, `CODABENCH_RABBITMQ_USER`, and
+`CODABENCH_RABBITMQ_PASSWORD` in the `.env` file.
 
 ### Collect results
 

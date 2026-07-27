@@ -357,4 +357,3 @@ scripts/                 # Operator scripts (run from your laptop)
 ├── stop_test.sh         # Stop all running Locust processes via SSM
 └── collect_results.sh   # Download CSV results from all regions via S3
 ```
-

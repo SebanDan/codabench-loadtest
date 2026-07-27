@@ -7,11 +7,13 @@ resource "aws_instance" "locust_master" {
   associate_public_ip_address = false
 
   user_data = templatefile("${path.module}/../../templates/locust_master.sh.tftpl", {
-    repo_url       = var.repo_url
-    repo_branch    = var.repo_branch
-    results_bucket = var.results_bucket
-    region_name    = "paris"
-    alb_dns        = data.aws_lb.codabench.dns_name
+    repo_url          = var.repo_url
+    repo_branch       = var.repo_branch
+    results_bucket    = var.results_bucket
+    region_name       = "paris"
+    codabench_app_ip  = var.codabench_app_ip
+    rabbitmq_user     = var.codabench_rabbitmq_user
+    rabbitmq_password = var.codabench_rabbitmq_password
   })
 
   root_block_device {

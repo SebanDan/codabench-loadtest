@@ -10,12 +10,12 @@ resource "aws_launch_template" "locust_worker" {
   }
 
   user_data = base64encode(templatefile("${path.module}/../../templates/locust_worker_paris.sh.tftpl", {
-    repo_url       = var.repo_url
-    repo_branch    = var.repo_branch
-    results_bucket = var.results_bucket
-    region_name    = "paris"
-    master_ip      = aws_instance.locust_master.private_ip
-    alb_dns        = data.aws_lb.codabench.dns_name
+    repo_url         = var.repo_url
+    repo_branch      = var.repo_branch
+    results_bucket   = var.results_bucket
+    region_name      = "paris"
+    master_ip        = aws_instance.locust_master.private_ip
+    codabench_app_ip = var.codabench_app_ip
   }))
 
   block_device_mappings {

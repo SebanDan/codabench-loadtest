@@ -6,7 +6,15 @@ Pré-requis :
   - AWS CLI configuré (profil codabench ou autre via AWS_PROFILE)
   - Terraform apply fait (infra/load-generators)
   - Fichier .env configuré sur les instances (fait automatiquement par user-data)
-  - Credentials RabbitMQ renseignés (CODABENCH_RABBITMQ_USER/PASSWORD)
+  - Credentials RabbitMQ sont injectés par Terraform (variables.tf)
+  - Services Codabench démarrés sur 10.0.11.11 (voir section TROUBLESHOOTING)
+
+IMPORTANT — Routage réseau Paris :
+  Les tests Paris utilisent l'IP directe de l'instance Codabench (10.0.11.11:80
+  via Caddy) et NON l'ALB DNS. L'ALB est internet-facing (IPs publiques), donc
+  le trafic depuis le subnet privé Locust ne peut pas l'atteindre (hairpin NAT).
+  Seules les régions distantes (US East, Asia Pacific) passent par l'ALB via
+  l'internet public — c'est voulu pour mesurer la latence réelle.
 
 
 ==============================================================================
@@ -176,3 +184,93 @@ But : simuler les conditions réelles d'une compétition avec des utilisateurs
 
    ./scripts/stop_test.sh             # toutes les régions
    ./scripts/stop_test.sh --paris-only # Paris uniquement
+
+
+==============================================================================
+  TROUBLESHOOTING — Problèmes rencontrés et solutions
+==============================================================================
+
+--- Problème 1 : Services Codabench arrêtés ---
+
+Symptôme : curl vers 10.0.11.11:80 ou :15672 retourne connection refused.
+L'instance EC2 est running mais les containers Docker sont arrêtés.
+
+Solution :
+  aws ssm send-command \
+    --profile codabench --region eu-west-1 \
+    --instance-ids i-050519c74b8b3c800 \
+    --document-name "AWS-RunShellScript" \
+    --parameters 'commands=["cd /opt/codabench && docker compose -f docker-compose.prod.yml up -d"]'
+
+Vérification :
+  aws ssm send-command ... \
+    --parameters 'commands=["docker ps --format \"table {{.Names}}\t{{.Status}}\""]'
+
+Les services prennent ~1 minute à démarrer. Attendre que Django soit healthy
+avant de lancer les tests.
+
+
+--- Problème 2 : ALB inaccessible depuis Paris (hairpin NAT) ---
+
+Symptôme : curl depuis le Locust master vers le DNS de l'ALB retourne
+HTTP 000 / connection timed out.
+
+Cause : l'ALB est internet-facing (IPs publiques uniquement). Le Locust
+master est dans un subnet privé. Le trafic sort par le NAT Gateway vers
+les IPs publiques de l'ALB, mais le retour ne fonctionne pas (hairpin NAT
+non supporté par AWS NAT Gateway).
+
+Solution : les tests Paris pointent directement vers 10.0.11.11:80 (Caddy)
+au lieu du DNS ALB. Les templates Terraform et run_test.sh ont été mis à
+jour pour utiliser la variable codabench_app_ip. Les régions distantes
+(US East, Asia Pacific) continuent d'utiliser l'ALB via l'internet public.
+
+
+--- Problème 3 : Security groups manquants ---
+
+Symptôme : connexion timeout vers 10.0.11.11 sur les ports 80 ou 15672.
+
+Cause : les règles de SG n'autorisaient pas le trafic Locust vers le SG
+de l'instance Codabench.
+
+Solution : ajout de 3 règles dans security_group.tf du module Paris :
+  - Egress Locust -> Codabench SG port 80 (trafic de test)
+  - Ingress Codabench SG <- Locust SG port 80 (accepter le trafic)
+  - Ingress ALB SG <- Locust SG port 80 (pour les tests ALB futurs)
+  (La règle RabbitMQ :15672 existait déjà)
+
+
+--- Problème 4 : Code pas sur la bonne branche sur les instances ---
+
+Symptôme : module not found, ou scénarios manquants.
+
+Cause : le user-data clone la branche définie dans variables.tf (par défaut
+main). Si le code est sur une feature branch, les instances ont l'ancienne
+version.
+
+Solution : utiliser --branch dans run_test.sh :
+  ./scripts/run_test.sh --branch 27-feat-provision-locust-infra --tags normal ...
+
+Ou merger la feature branch dans main avant de tester.
+
+
+==============================================================================
+  TESTS DE VALIDATION EFFECTUÉS (2026-07-27)
+==============================================================================
+
+1. Connectivité Codabench depuis le Locust master (via SSM) :
+   - Django/Caddy (10.0.11.11:80)  → HTTP 200 ✓
+   - RabbitMQ API (10.0.11.11:15672) → HTTP 200 ✓
+   - ALB DNS (public)               → HTTP 000 ✗ (hairpin NAT, attendu)
+
+2. Monitoring RabbitMQ (rabbitmq_monitor.py, 15s de test) :
+   - 4 queues détectées : celeryev.* (×2), site-worker, pidbox
+   - Toutes les queues vides (depth=0, pas de charge en cours)
+   - 1 consumer par queue (worker Celery connecté)
+   - Mémoire RabbitMQ : ~152 MB (baseline saine)
+   - CSV généré correctement avec toutes les colonnes
+
+3. Services Codabench :
+   - 9 containers Docker up (django, rabbit, db, redis, caddy, minio,
+     site_worker, flower, builder)
+   - Target group ALB : healthy sur port 8000

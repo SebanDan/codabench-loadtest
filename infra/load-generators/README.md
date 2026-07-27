@@ -155,7 +155,9 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 Network flows:
 
   ①  Test traffic (HTTP :80)
-     Paris: Locust -> ALB (internal, no NAT cost)
+     Paris: Locust -> 10.0.11.11:80 Caddy (direct, private)
+            The ALB is internet-facing (public IPs only), so Paris
+            instances cannot reach it (hairpin NAT not supported).
      US/Asia: Locust -> internet -> ALB (real user latency)
 
   ②  RabbitMQ monitoring (HTTP :15672)

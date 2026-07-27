@@ -77,3 +77,17 @@ variable "repo_branch" {
 variable "results_bucket" {
   type = string
 }
+
+variable "codabench_app_ip" {
+  description = "Private IP of the Codabench app instance"
+  type        = string
+}
+
+variable "codabench_rabbitmq_user" {
+  type = string
+}
+
+variable "codabench_rabbitmq_password" {
+  type      = string
+  sensitive = true
+}

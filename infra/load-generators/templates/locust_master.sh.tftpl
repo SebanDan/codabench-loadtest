@@ -25,8 +25,10 @@ uv sync
 
 # --- Write environment config ---
 cat > .env <<'ENVEOF'
-CODABENCH_HOST=http://${alb_dns}
-CODABENCH_RABBITMQ_URL=http://10.0.11.11:15672
+CODABENCH_HOST=http://${codabench_app_ip}
+CODABENCH_RABBITMQ_URL=http://${codabench_app_ip}:15672
+CODABENCH_RABBITMQ_USER=${rabbitmq_user}
+CODABENCH_RABBITMQ_PASSWORD=${rabbitmq_password}
 LOCUST_REGION=${region_name}
 RESULTS_BUCKET=${results_bucket}
 ENVEOF
@@ -35,7 +37,7 @@ ENVEOF
 uv run locust \
   -f codabench_loadtest/locustfile.py \
   --master \
-  --host "http://${alb_dns}" \
+  --host "http://${codabench_app_ip}" \
   &>> /var/log/locust.log &
 
 echo "Locust master started"

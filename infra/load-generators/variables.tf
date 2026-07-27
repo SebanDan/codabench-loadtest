@@ -40,6 +40,12 @@ variable "codabench_iam_profile_name" {
   default = "codabench-prodlike-ssm-instance-profile"
 }
 
+variable "codabench_app_ip" {
+  description = "Private IP of the Codabench app instance (Django/Caddy/RabbitMQ)"
+  type        = string
+  default     = "10.0.11.11"
+}
+
 # --- Paris Locust subnet ---
 
 variable "paris_locust_subnet_cidr" {

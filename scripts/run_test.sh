@@ -65,10 +65,12 @@ done
 # --- Resolve Terraform outputs ---
 echo "=== Reading Terraform outputs ==="
 MASTER_ID=$(terraform -chdir="$TF_DIR" output -raw paris_locust_master_id)
+PARIS_HOST=$(terraform -chdir="$TF_DIR" output -raw codabench_app_ip)
 ALB_DNS=$(terraform -chdir="$TF_DIR" output -raw codabench_alb_dns)
 
 echo "  Master:   ${MASTER_ID}"
-echo "  ALB:      ${ALB_DNS}"
+echo "  Paris:    http://${PARIS_HOST} (direct)"
+echo "  Remote:   http://${ALB_DNS} (via ALB)"
 echo "  Tags:     ${TAGS}"
 echo "  Users:    ${USERS}"
 echo "  Duration: ${DURATION}"
@@ -186,7 +188,7 @@ MASTER_CMD="cd /opt/codabench-loadtest && /root/.local/bin/uv run locust \
   --master \
   --tags ${TAGS} \
   --env ${ENV} \
-  --host http://${ALB_DNS} \
+  --host http://${PARIS_HOST} \
   --expect-workers \$(echo '${PARIS_WORKERS}' | wc -w | tr -d ' ') \
   --csv runs/${RUN_NAME}_paris \
   &>> /var/log/locust.log &"
@@ -206,7 +208,7 @@ for wid in ${PARIS_WORKERS}; do
     --master-host ${MASTER_IP} \
     --tags ${TAGS} \
     --env ${ENV} \
-    --host http://${ALB_DNS} \
+    --host http://${PARIS_HOST} \
     &>> /var/log/locust.log &"
 
   ssm_run "${wid}" "eu-west-1" "start-locust-worker" "${WORKER_CMD}"

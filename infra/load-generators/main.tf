@@ -23,6 +23,9 @@ module "paris" {
   repo_url                  = var.loadtest_repo_url
   repo_branch               = var.loadtest_repo_branch
   results_bucket            = aws_s3_bucket.results.bucket
+  codabench_app_ip            = var.codabench_app_ip
+  codabench_rabbitmq_user     = data.aws_ssm_parameter.rabbitmq_user.value
+  codabench_rabbitmq_password = data.aws_ssm_parameter.rabbitmq_password.value
 }
 
 module "us_east" {

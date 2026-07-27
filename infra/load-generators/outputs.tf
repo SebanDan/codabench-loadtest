@@ -29,8 +29,13 @@ output "ap_southeast_workers_asg" {
 }
 
 output "codabench_alb_dns" {
-  description = "DNS of the Codabench ALB (target for all load tests)."
+  description = "DNS of the Codabench ALB (target for remote region tests)."
   value       = module.paris.alb_dns
+}
+
+output "codabench_app_ip" {
+  description = "Private IP of the Codabench app (target for Paris tests)."
+  value       = var.codabench_app_ip
 }
 
 output "results_bucket" {

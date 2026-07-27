@@ -22,6 +22,16 @@ resource "aws_vpc_security_group_egress_rule" "to_alb" {
   description                  = "Load test traffic to ALB"
 }
 
+# Test traffic: Locust -> Codabench Caddy on port 80 (direct, no ALB hairpin)
+resource "aws_vpc_security_group_egress_rule" "to_codabench_http" {
+  security_group_id            = aws_security_group.locust.id
+  referenced_security_group_id = data.aws_security_group.codabench.id
+  from_port                    = 80
+  to_port                      = 80
+  ip_protocol                  = "tcp"
+  description                  = "Load test traffic to Codabench (direct)"
+}
+
 # Monitoring: Locust -> Codabench RabbitMQ Management on port 15672
 resource "aws_vpc_security_group_egress_rule" "to_rabbitmq" {
   security_group_id            = aws_security_group.locust.id
@@ -64,7 +74,25 @@ resource "aws_vpc_security_group_ingress_rule" "master_workers" {
   description                  = "Locust master-worker communication"
 }
 
-# --- Rule on EXISTING Codabench SG: allow Locust → RabbitMQ 15672 ---
+# --- Rules on EXISTING SGs: allow Locust traffic in ---
+
+resource "aws_vpc_security_group_ingress_rule" "alb_from_locust" {
+  security_group_id            = data.aws_security_group.alb.id
+  referenced_security_group_id = aws_security_group.locust.id
+  from_port                    = 80
+  to_port                      = 80
+  ip_protocol                  = "tcp"
+  description                  = "Locust load test traffic to ALB"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "codabench_http_from_locust" {
+  security_group_id            = data.aws_security_group.codabench.id
+  referenced_security_group_id = aws_security_group.locust.id
+  from_port                    = 80
+  to_port                      = 80
+  ip_protocol                  = "tcp"
+  description                  = "Locust load test traffic to Caddy/Django"
+}
 
 resource "aws_vpc_security_group_ingress_rule" "codabench_rabbitmq_from_locust" {
   security_group_id            = data.aws_security_group.codabench.id

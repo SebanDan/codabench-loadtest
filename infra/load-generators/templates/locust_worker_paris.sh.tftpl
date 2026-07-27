@@ -26,9 +26,13 @@ uv sync
 # --- Write environment config ---
 cat > .env <<'ENVEOF'
 CODABENCH_HOST=http://${codabench_app_ip}
+CODABENCH_USERNAME=${codabench_username}
+CODABENCH_PASSWORD=${codabench_password}
 LOCUST_REGION=${region_name}
 RESULTS_BUCKET=${results_bucket}
 ENVEOF
+
+cp .env .github/env/prod.env
 
 # --- Start Locust worker ---
 uv run locust \

@@ -67,3 +67,12 @@ variable "repo_branch" {
 variable "results_bucket" {
   type = string
 }
+
+variable "codabench_username" {
+  type = string
+}
+
+variable "codabench_password" {
+  type      = string
+  sensitive = true
+}

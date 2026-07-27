@@ -29,7 +29,9 @@ resource "aws_launch_template" "locust_worker" {
     repo_branch    = var.repo_branch
     results_bucket = var.results_bucket
     region_name    = var.region_name
-    alb_dns        = var.alb_dns
+    alb_dns            = var.alb_dns
+    codabench_username = var.codabench_username
+    codabench_password = var.codabench_password
   }))
 
   block_device_mappings {

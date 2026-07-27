@@ -15,7 +15,9 @@ resource "aws_launch_template" "locust_worker" {
     results_bucket   = var.results_bucket
     region_name      = "paris"
     master_ip        = aws_instance.locust_master.private_ip
-    codabench_app_ip = var.codabench_app_ip
+    codabench_app_ip   = var.codabench_app_ip
+    codabench_username = var.codabench_username
+    codabench_password = var.codabench_password
   }))
 
   block_device_mappings {

@@ -91,3 +91,12 @@ variable "codabench_rabbitmq_password" {
   type      = string
   sensitive = true
 }
+
+variable "codabench_username" {
+  type = string
+}
+
+variable "codabench_password" {
+  type      = string
+  sensitive = true
+}

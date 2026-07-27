@@ -26,9 +26,13 @@ uv sync
 # --- Write environment config ---
 cat > .env <<'ENVEOF'
 CODABENCH_HOST=http://${alb_dns}
+CODABENCH_USERNAME=${codabench_username}
+CODABENCH_PASSWORD=${codabench_password}
 LOCUST_REGION=${region_name}
 RESULTS_BUCKET=${results_bucket}
 ENVEOF
+
+cp .env .github/env/prod.env
 
 # Remote workers do NOT auto-start Locust.
 # Runs are triggered manually via SSM:

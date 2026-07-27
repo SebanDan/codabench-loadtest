@@ -20,6 +20,7 @@ codabench-loadtest/
 │   ├── common/
 │   │   ├── api_client.py        # Client dedicated for admin task
 │   │   ├── config.py            # Classe used for configuration validation
+│   │   ├── rabbitmq_monitor.py  # RabbitMQ queue depth/memory monitoring
 │   │   └── environment_setup.py # Orchestrate the environment setup (creates the competition and the users)
 │   └── scenarios/
 │       ├── utils.py             # Helpers (auth, validation de bundle...)
@@ -28,29 +29,65 @@ codabench-loadtest/
 │           ├── submitter_user.py # Submission scenario
 │           └── clumsy_user.py    # Scenario submit + cancel + re-run
 ├── data/                        # Competition and submission bundles
+├── .github/env/
+│   ├── .env.example             # Template for environment variables
+│   └── prod.env                 # Auto-generated on instances by user-data
+├── infra/load-generators/       # Terraform for Locust infra (3 regions)
+├── scripts/                     # SSM-based test orchestration (run/stop/collect)
+├── docs/                        # Test methodology and steps
 ├── locust.conf                  # Config Locust (CLI)
 ├── pyproject.toml
 ```
 
+## AWS Infrastructure
+
+The load-generator infrastructure is managed by Terraform in `infra/load-generators/`. It provisions Locust instances across 3 AWS regions (Paris, US East, Asia Pacific) to simulate geographically distributed users.
+
+Credentials are stored in AWS SSM Parameter Store (no secrets in code):
+
+| Parameter | Type |
+|-----------|------|
+| `/codabench-loadtest/rabbitmq-user` | String |
+| `/codabench-loadtest/rabbitmq-password` | SecureString |
+| `/codabench-loadtest/codabench-username` | String |
+| `/codabench-loadtest/codabench-password` | SecureString |
+
+Terraform reads these automatically and injects them into `.env` and `.github/env/prod.env` on each instance at boot. See `docs/test_steps.txt` for detailed test procedures.
+
 ## Usage
 
-To run the locust tests, setup your `locust.conf` as well as you `.env` file.
-There is a configuration for locust in the `pyproject.toml` but it do not need to be changed.
+### Local development
 
 ```bash
 git clone https://github.com/SebanDan/codabench-loadtest.git
 cd codabench-loadtest
-cp .github/env/.env.example local.env
+cp .github/env/.env.example .github/env/local.env
 cp locust.example.conf locust.conf
 ```
 
-*Note: As the locust test will generate assets on the platform it is required to provide a valid admin username and password in the `.env` file*
-
-Then run the following command to execute locust with your configuration:
+Edit `.github/env/local.env` with your Codabench credentials, then:
 
 ```bash
-uv run locust
+uv run locust --env local
 ```
+
+### On AWS instances
+
+The `prod.env` file is auto-provisioned by user-data at boot. Just run:
+
+```bash
+uv run locust --env prod
+```
+
+Or use the orchestration scripts:
+
+```bash
+./scripts/run_test.sh --tags normal --users 50 --duration 10m
+./scripts/stop_test.sh
+./scripts/collect_results.sh <run-name>
+```
+
+*Note: As the locust test will generate assets on the platform it is required to provide a valid admin username and password in the env file.*
 
 It is possible to filter on a specific user (for instance here the SmokeUser) by running.
 

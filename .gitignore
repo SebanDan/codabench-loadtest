@@ -83,6 +83,11 @@ locust.conf
 *locust.conf
 
 infra/*
+!infra/README.md
+!infra/load-generators/
+!infra/load-generators/**
+infra/load-generators/.terraform/
+infra/load-generators/deploy-log.txt
 .agitmodules
 .gitmodules
 infra/codabench

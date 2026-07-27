@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import SecretStr
 from requests import Session
 
-from codabench_loadtest.common.config import Settings
 from codabench_loadtest.scenarios.utils import validate_competition_bundle
+
+if TYPE_CHECKING:
+    from codabench_loadtest.setup.config import Settings
 
 # Submission statuses as returned by the API (Title Case).
 SUBMITTING = "Submitting"

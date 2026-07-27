@@ -4,27 +4,21 @@ from time import sleep
 from typing import TYPE_CHECKING
 
 from locust import HttpUser, between, tag, task
-from pydantic import SecretStr
 
-from codabench_loadtest.clients import get_custom_codabench_locust_client
 from codabench_loadtest.clients.base_api_client import FAILED
+from codabench_loadtest.scenarios.tasks.common import BaseUser
 
 if TYPE_CHECKING:
-    from codabench_loadtest.models import SubmissionZip, User
+    from codabench_loadtest.models import SubmissionZip
 
 
-class SubmitterUser(HttpUser):
-    """Uploads a code submission to the competition."""
+class SubmitterUser(BaseUser, HttpUser):
+    """A user that submits tasks to the codabench platform."""
 
     wait_time = between(1, 3)
 
     def on_start(self):
-        user: User = self.environment.user_pool.get_random_user()
-        self.codabench_client = get_custom_codabench_locust_client(
-            client=self.client,
-            settings=self.environment.codabench_settings,
-            update={"username": user.username, "password": SecretStr(user.password)},
-        )
+        self.codabench_client = self.get_codabench_client()
         self.codabench_client.login()
 
     def on_stop(self):

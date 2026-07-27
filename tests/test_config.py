@@ -1,6 +1,6 @@
 import pytest
 
-from codabench_loadtest.common.config import Settings
+from codabench_loadtest.setup import Settings
 
 
 def test_poll_timeout_must_exceed_interval():

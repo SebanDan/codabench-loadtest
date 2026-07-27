@@ -65,7 +65,17 @@ cp .github/env/.env.example .github/env/local.env
 cp locust.example.conf locust.conf
 ```
 
-Edit `.github/env/local.env` with your Codabench credentials, then:
+Edit `.github/env/local.env` with your Codabench credentials.
+
+*Note: As the locust test will need to generate assets on the platform it is required to provide a valid admin username and password in the `.env` file*
+
+When running playright based scenario be sure to run the following command to setup playwright.
+
+```bash
+uv run playwright install
+````
+
+Then run the following command to execute locust with your configuration:
 
 ```bash
 uv run locust --env local

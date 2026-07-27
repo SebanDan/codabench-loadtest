@@ -2,8 +2,8 @@ from pathlib import Path
 
 from locust import events
 
-from codabench_loadtest.common import EnvironmentSetup, Settings
 from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser
+from codabench_loadtest.setup import EnvironmentSetup, Settings
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"

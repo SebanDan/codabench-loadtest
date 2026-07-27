@@ -7,8 +7,8 @@ from typing import Any
 from pydantic import SecretStr
 from requests import Session
 
-from codabench_loadtest.common.config import Settings
 from codabench_loadtest.scenarios.utils import validate_competition_bundle
+from codabench_loadtest.setup.config import Settings
 
 # Submission statuses as returned by the API (Title Case).
 SUBMITTING = "Submitting"

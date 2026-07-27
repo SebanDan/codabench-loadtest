@@ -180,7 +180,7 @@ Network flows:
 
 ```bash
 # 1. Initialize Terraform (downloads providers, configures S3 backend)
-cd infra/load-generators
+cd cloud/aws/deploy
 terraform init
 
 # 2. Preview what will be created
@@ -357,4 +357,3 @@ scripts/                 # Operator scripts (run from your laptop)
 ├── stop_test.sh         # Stop all running Locust processes via SSM
 └── collect_results.sh   # Download CSV results from all regions via S3
 ```
-

@@ -26,8 +26,16 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
       - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v4
+        uses: terraform-linters/setup-tflint@v6
+
+      - name: Check Terraform linting & formatting
+        run: |
+          tflint --chdir=cloud --recursive
+          terraform fmt -check=true -recursive cloud
 
       - name: Check Formatting
         run: |

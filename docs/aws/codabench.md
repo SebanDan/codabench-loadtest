@@ -1,3 +1,9 @@
+---
+title: Install on AWS
+parent: Deploying on the cloud
+nav_order: 1
+---
+
 # Codabench Infrastructure
 
 ## Overview

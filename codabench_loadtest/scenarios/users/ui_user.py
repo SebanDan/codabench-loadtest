@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from typing import TYPE_CHECKING
 
@@ -8,11 +10,10 @@ from locust_plugins.users.playwright import event  # type: ignore
 from locust_plugins.users.playwright import pw  # type: ignore
 from playwright.async_api import expect  # type: ignore
 
-from codabench_loadtest.models import User
 from codabench_loadtest.scenarios.tasks.playwright import login
 
 if TYPE_CHECKING:
-    from codabench_loadtest.models import SubmissionZip
+    from codabench_loadtest.models import CompetitionZip, SubmissionZip, User
 
 
 class UIUser(PlaywrightUser):
@@ -34,21 +35,30 @@ class UIUser(PlaywrightUser):
     @task  # type: ignore
     @pw
     async def check_submit_button(self, page: PageWithRetry):
+        competition_zip: CompetitionZip = (
+            self.environment.competition_pool.get_random_competition()
+        )
         await self._ensure_auth(page)
 
         async with event(self, "[UI] Check competition page"):
-            await page.goto(f"/competitions/{self.environment.competition_id}/")
+            await page.goto(f"/competitions/{competition_zip.id}/")
         await page.click('button:has-text("Submit")')
 
     @tag("normal")  # type: ignore
     @task  # type: ignore
     @pw
     async def submit_task(self, page: PageWithRetry):
-        user = await self._ensure_auth(page)
-        submission: SubmissionZip = (
-            self.environment.submission_pool.get_random_submission_zip()
+        competition_zip: CompetitionZip = (
+            self.environment.competition_pool.get_random_competition()
         )
-        async with event(self, f"[UI] Submit task {submission.zip_name}"):
+        submission: SubmissionZip = competition_zip.get_random_submission_zip()
+
+        user = await self._ensure_auth(page)
+
+        async with event(
+            self,
+            f"[UI] Competition {competition_zip.name} Submit task {submission.zip_name}",
+        ):
             await page.get_by_text("My Submissions").click()
 
             async with page.expect_file_chooser() as fc_info:

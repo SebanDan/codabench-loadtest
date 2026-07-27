@@ -21,6 +21,13 @@ def _(parser):
         choices=["local", "prod"],
         help="Environment file name to use for the load test (local or prod).",
     )
+    parser.add_argument(
+        "--competition-filter",
+        type=str,
+        nargs="+",
+        default=None,
+        help="List of competition names to filter the competitions to be tested.",
+    )
 
 
 @events.init.add_listener
@@ -33,8 +40,10 @@ def on_init(environment, **kwargs):
     env_setup = EnvironmentSetup(codabench_settings)
     environment.env_setup = env_setup
     environment.data_dir = DATA_DIR
-    environment.submission_dir = SUBMISSION_DIR
-    environment.submission_pool = env_setup.get_submission_pool(SUBMISSION_DIR)
+    environment.competition_pool = env_setup.get_competition_pool(
+        competition_dir=DATA_DIR,
+        competition_filter=environment.parsed_options.competition_filter,
+    )
 
 
 @events.test_start.add_listener
@@ -45,28 +54,29 @@ def on_test_start(environment, **kwargs):
 
     # On test start, filter the users based on the selected tasks (filtered on tags) from the configuration file.
     environment.user_classes = [uc for uc in environment.user_classes if uc.tasks]
+    user_pool = environment.env_setup.create_user_pools(
+        size=environment.parsed_options.num_users
+    )
+    environment.user_pool = user_pool
 
-    result = environment.env_setup.create_competition(
-        bundle_path=DATA_DIR / environment.codabench_settings.competition_bundle
-    )
-    environment.competition_id = result.get("resulting_competition")
-    environment.competition_phase_id = (
-        environment.env_setup.get_competition_first_phase(
-            competition_id=environment.competition_id
+    for competition in environment.competition_pool.competitions:
+
+        result = environment.env_setup.create_competition(
+            bundle_path=competition.bundle_path
         )
-    )
+        competition.id = result.get("resulting_competition")
+        competition.phase_id = environment.env_setup.get_competition_first_phase(
+            competition_id=competition.id
+        )
+        environment.env_setup.register_user_pool(
+            competition_id=competition.id, user_pool=user_pool
+        )
+
     environment.env_setup.dataset_ids.extend(
         environment.env_setup.codabench_client.list_dataset_ids(
             kind="competition_bundle"
         )
     )
-    user_pool = environment.env_setup.create_user_pools(
-        size=environment.parsed_options.num_users
-    )
-    environment.env_setup.register_user_pool(
-        competition_id=environment.competition_id, user_pool=user_pool
-    )
-    environment.user_pool = user_pool
 
 
 @events.test_stop.add_listener
@@ -76,6 +86,7 @@ def on_test_stop(environment, **kwargs):
     """
     # Delete the competition first: its CASCADE FKs remove the participants and
     # submissions that reference the users.
-    environment.env_setup.delete_competition(environment.competition_id)
+    for competition in environment.competition_pool.competitions:
+        environment.env_setup.delete_competition(competition.id)
     environment.env_setup.delete_users(environment.user_pool)
     environment.env_setup.delete_datasets()

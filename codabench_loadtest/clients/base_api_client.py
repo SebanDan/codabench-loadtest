@@ -7,8 +7,6 @@ from typing import TYPE_CHECKING, Any
 from pydantic import SecretStr
 from requests import Session
 
-from codabench_loadtest.scenarios.utils import validate_competition_bundle
-
 if TYPE_CHECKING:
     from codabench_loadtest.setup.config import Settings
 
@@ -170,8 +168,6 @@ class CodabenchClient:
         timeout: float | None = None,
     ) -> dict[str, Any]:
         self._ensure_auth()
-
-        validate_competition_bundle(bundle_path)
 
         resp = self.session.post(
             f"{self.host}/api/datasets/",

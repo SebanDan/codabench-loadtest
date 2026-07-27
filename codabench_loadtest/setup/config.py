@@ -26,10 +26,6 @@ class Settings(BaseSettings):
     poll_interval: float = 5.0
     poll_timeout: float = 3600.0
 
-    # Submission defaults
-    competition_bundle: str = "Mini-MNIST-Bundle.zip"
-    competition_id: int | None = None
-
     # Thresholds for assertions / reports
     max_response_time_p95: float = 2.0
     max_error_rate: float = 0.01

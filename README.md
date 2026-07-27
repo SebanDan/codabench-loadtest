@@ -32,8 +32,8 @@ codabench-loadtest/
 ├── .github/env/
 │   ├── .env.example             # Template for environment variables
 │   └── prod.env                 # Auto-generated on instances by user-data
-├── infra/load-generators/       # Terraform for Locust infra (3 regions)
-├── scripts/                     # SSM-based test orchestration (run/stop/collect)
+├── cloud/aws/deploy/            # Terraform for Locust infra (3 regions)
+├── cloud/aws/scripts/           # SSM-based test orchestration (run/stop/collect)
 ├── docs/                        # Test methodology and steps
 ├── locust.conf                  # Config Locust (CLI)
 ├── pyproject.toml
@@ -41,7 +41,7 @@ codabench-loadtest/
 
 ## AWS Infrastructure
 
-The load-generator infrastructure is managed by Terraform in `infra/load-generators/`. It provisions Locust instances across 3 AWS regions (Paris, US East, Asia Pacific) to simulate geographically distributed users.
+The load-generator infrastructure is managed by Terraform in `cloud/aws/deploy/`. It provisions Locust instances across 3 AWS regions (Paris, US East, Asia Pacific) to simulate geographically distributed users.
 
 Credentials are stored in AWS SSM Parameter Store (no secrets in code):
 
@@ -82,9 +82,9 @@ uv run locust --env prod
 Or use the orchestration scripts:
 
 ```bash
-./scripts/run_test.sh --tags normal --users 50 --duration 10m
-./scripts/stop_test.sh
-./scripts/collect_results.sh <run-name>
+./cloud/aws/scripts/run_test.sh --tags normal --users 50 --duration 10m
+./cloud/aws/scripts/stop_test.sh
+./cloud/aws/scripts/collect_results.sh <run-name>
 ```
 
 *Note: As the locust test will generate assets on the platform it is required to provide a valid admin username and password in the env file.*

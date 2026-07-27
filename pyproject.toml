@@ -11,7 +11,7 @@ dependencies = [
     "requests>=2.32.0",
     "pydantic-settings>=2.9.0",
     "faker>=40.31.0",
-    "locust-plugins>=5.0.3",
+    "locust-plugins[playwright]>=5.0.3",
     "playwright>=1.61.0",
 ]
 

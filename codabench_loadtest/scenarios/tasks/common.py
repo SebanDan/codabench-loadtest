@@ -17,13 +17,13 @@ class BaseUser(HttpUser):
 
     abstract = True
     codabench_client: CodabenchLocustClient
+    _logged_in: bool = False
 
     def get_codabench_client(self) -> CodabenchLocustClient:
-        user = self
-        codabench_user: User = user.environment.user_pool.get_random_user()
+        codabench_user: User = self.environment.user_pool.get_random_user()
         return get_custom_codabench_locust_client(
-            client=user.client,
-            settings=user.environment.codabench_settings,
+            client=self.client,
+            settings=self.environment.codabench_settings,
             update={
                 "username": codabench_user.username,
                 "password": SecretStr(codabench_user.password),

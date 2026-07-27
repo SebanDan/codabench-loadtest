@@ -2,7 +2,7 @@ from pathlib import Path
 
 from locust import events
 
-from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser
+from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser, UIUser
 from codabench_loadtest.setup import EnvironmentSetup, Settings
 
 ROOT_DIR = Path(__file__).resolve().parent.parent

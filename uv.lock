@@ -263,6 +263,7 @@ dev = [
     { name = "black" },
     { name = "coverage" },
     { name = "isort" },
+    { name = "pandas" },
     { name = "pre-commit" },
     { name = "pyright" },
     { name = "pytest" },
@@ -274,9 +275,6 @@ dev = [
 format = [
     { name = "black" },
     { name = "isort" },
-]
-frontend = [
-    { name = "playwright" },
 ]
 lint = [
     { name = "ruff" },
@@ -312,6 +310,7 @@ dev = [
     { name = "black", specifier = ">=26.5.1" },
     { name = "coverage", specifier = ">=7.14.1" },
     { name = "isort", specifier = ">=8.0.1" },
+    { name = "pandas", specifier = ">=2.3.0" },
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "pyright", specifier = ">=1.1.410" },
     { name = "pytest", specifier = ">=8.4.2" },
@@ -324,7 +323,6 @@ format = [
     { name = "black", specifier = ">=26.5.1" },
     { name = "isort", specifier = ">=8.0.1" },
 ]
-frontend = [{ name = "playwright", specifier = ">=1.52.0" }]
 lint = [{ name = "ruff", specifier = ">=0.15.16" }]
 reports = [{ name = "pandas", specifier = ">=2.3.0" }]
 test = [

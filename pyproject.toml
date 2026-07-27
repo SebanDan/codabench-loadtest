@@ -23,6 +23,7 @@ dev = [
     {include-group = "lint"},
     {include-group = "typing"},
     {include-group = "test"},
+    {include-group = "reports"},
 ]
 
 test = [
@@ -44,10 +45,6 @@ lint = [
 
 typing = [
     "pyright>=1.1.410",
-]
-
-frontend = [
-    "playwright>=1.52.0",
 ]
 
 reports = [

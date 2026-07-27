@@ -17,34 +17,44 @@ This repository provides load testing scenarios for the codabench platform based
 codabench-loadtest/
 ├── codabench_loadtest/
 │   ├── locustfile.py            # Entrypoint for the locust tests
-│   ├── common/
-│   │   ├── api_client.py        # Client dedicated for admin task
+│   ├── clients/
+│   │   ├── base_api_client.py        # Client dedicated for admin task
+│   │   └── locust_api_client.py      # Client dedicated for locust monitoring
+│   ├── monitors/
+│   │   └── rabbitmq_monitor.py  # RabbitMQ queue depth/memory monitoring
+│   ├── setup/
 │   │   ├── config.py            # Classe used for configuration validation
 │   │   └── environment_setup.py # Orchestrate the environment setup (creates the competition and the users)
 │   └── scenarios/
-│       ├── utils.py             # Helpers (auth, validation de bundle...)
+│       ├── utils.py             # Helpers
 │       └── users/
 │           ├── smoke_user.py     # Smoke test scenario
 │           ├── submitter_user.py # Submission scenario
 │           └── clumsy_user.py    # Scenario submit + cancel + re-run
 ├── data/                        # Competition and submission bundles
+├── .github/env/
+│   ├── .env.example             # Template for environment variables
+│   └── prod.env                 # Auto-generated on instances by user-data
+├── cloud/aws/deploy/            # Terraform for Locust infra (3 regions)
+├── cloud/aws/scripts/           # SSM-based test orchestration (run/stop/collect)
+├── docs/                        # Test methodology and steps
 ├── locust.conf                  # Config Locust (CLI)
-├── pyproject.toml
 ```
 
 ## Usage
 
-To run the locust tests, setup your `locust.conf` as well as you `.env` file.
-There is a configuration for locust in the `pyproject.toml` but it do not need to be changed.
+### Local Installation
 
 ```bash
 git clone https://github.com/SebanDan/codabench-loadtest.git
 cd codabench-loadtest
-cp .github/env/.env.example local.env
+cp .github/env/.env.example .github/env/local.env
 cp locust.example.conf locust.conf
 ```
 
-*Note: As the locust test will generate assets on the platform it is required to provide a valid admin username and password in the `.env` file*
+Edit `.github/env/local.env` with your Codabench credentials.
+
+*Note: As the locust test will need to generate assets on the platform it is required to provide a valid admin username and password in the `.env` file*
 
 When running playright based scenario be sure to run the following command to setup playwright.
 
@@ -55,13 +65,7 @@ uv run playwright install
 Then run the following command to execute locust with your configuration:
 
 ```bash
-uv run locust
-```
-
-It is possible to filter on a specific user (for instance here the SmokeUser) by running.
-
-```bash
-uv run locust SmokeUser
+uv run locust --env local
 ```
 
 ### How to manage the bundles ?

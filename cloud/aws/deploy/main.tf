@@ -26,6 +26,8 @@ module "paris" {
   codabench_app_ip            = var.codabench_app_ip
   codabench_rabbitmq_user     = data.aws_ssm_parameter.rabbitmq_user.value
   codabench_rabbitmq_password = data.aws_ssm_parameter.rabbitmq_password.value
+  codabench_username          = data.aws_ssm_parameter.codabench_username.value
+  codabench_password          = data.aws_ssm_parameter.codabench_password.value
 }
 
 module "us_east" {
@@ -47,6 +49,8 @@ module "us_east" {
   repo_url                  = var.loadtest_repo_url
   repo_branch               = var.loadtest_repo_branch
   results_bucket            = aws_s3_bucket.results.bucket
+  codabench_username        = data.aws_ssm_parameter.codabench_username.value
+  codabench_password        = data.aws_ssm_parameter.codabench_password.value
 }
 
 module "ap_southeast" {
@@ -68,4 +72,6 @@ module "ap_southeast" {
   repo_url                  = var.loadtest_repo_url
   repo_branch               = var.loadtest_repo_branch
   results_bucket            = aws_s3_bucket.results.bucket
+  codabench_username        = data.aws_ssm_parameter.codabench_username.value
+  codabench_password        = data.aws_ssm_parameter.codabench_password.value
 }

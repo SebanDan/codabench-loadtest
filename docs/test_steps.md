@@ -6,12 +6,17 @@ Pré-requis :
   - AWS CLI configuré (profil codabench ou autre via AWS_PROFILE)
   - Terraform apply fait (infra/load-generators)
   - Fichier .env configuré sur les instances (fait automatiquement par user-data)
-  - Credentials RabbitMQ stockés dans AWS SSM Parameter Store :
+  - Credentials stockés dans AWS SSM Parameter Store :
       /codabench-loadtest/rabbitmq-user       (String)
       /codabench-loadtest/rabbitmq-password    (SecureString, chiffré)
+      /codabench-loadtest/codabench-username   (String)
+      /codabench-loadtest/codabench-password   (SecureString, chiffré)
     Terraform les lit automatiquement via data sources (data.tf) et les
-    injecte dans le .env du master au déploiement. Aucun secret en dur
-    dans le code.
+    injecte dans le .env et .github/env/prod.env de chaque instance au
+    déploiement. Aucun secret en dur dans le code.
+  - Le fichier .github/env/prod.env est créé automatiquement par le
+    user-data au boot — pas besoin de le créer manuellement. Locust
+    le charge quand on passe --env prod.
   - Services Codabench démarrés sur 10.0.11.11 (voir section TROUBLESHOOTING)
 
 IMPORTANT — Routage réseau Paris :
@@ -280,14 +285,29 @@ Ou merger la feature branch dans main avant de tester.
      site_worker, flower, builder)
    - Target group ALB : healthy sur port 8000
 
-4. Credentials RabbitMQ via SSM Parameter Store :
+4. Credentials via SSM Parameter Store :
    - /codabench-loadtest/rabbitmq-user       → lecture OK (String)
    - /codabench-loadtest/rabbitmq-password    → lecture OK (SecureString, déchiffré)
+   - /codabench-loadtest/codabench-username   → lecture OK (String)
+   - /codabench-loadtest/codabench-password   → lecture OK (SecureString, déchiffré)
    - Terraform data sources fonctionnels (data.tf)
-   - Credentials injectés dans le .env du master via user-data template
+   - Credentials injectés dans .env + .github/env/prod.env de chaque instance
+
+5. Login API Codabench :
+   - POST /api/v1/... avec session auth → HTTP 200 OK
+   - L'API utilise l'auth cookie-based (pas de token JSON), le CodabenchClient
+     du projet gère ça correctement via session
+
+6. Provisionnement automatique prod.env :
+   - User-data crée .env à la racine du repo
+   - User-data copie .env → .github/env/prod.env
+   - Locust charge prod.env automatiquement avec --env prod
+   - Plus besoin de créer ce fichier manuellement sur les instances
 
 Statut global : tout fonctionne OK
    - Connectivité réseau Paris → Codabench (HTTP + RabbitMQ)
    - Monitoring RabbitMQ (CSV généré, queues détectées)
    - Credentials sécurisés (SSM Parameter Store, pas de secrets dans le code)
+   - Login API fonctionnel (session auth)
+   - prod.env auto-provisionné au boot
    - Scripts SSM opérationnels (run_test.sh, stop_test.sh, collect_results.sh)

@@ -99,8 +99,12 @@ class RabbitMQMonitor:
             messages_ready=data.get("messages_ready", 0),
             messages_unacked=data.get("messages_unacknowledged", 0),
             consumers=data.get("consumers", 0),
-            publish_rate=self._rate(data.get("message_stats", {}).get("publish_details", {})),
-            deliver_rate=self._rate(data.get("message_stats", {}).get("deliver_get_details", {})),
+            publish_rate=self._rate(
+                data.get("message_stats", {}).get("publish_details", {})
+            ),
+            deliver_rate=self._rate(
+                data.get("message_stats", {}).get("deliver_get_details", {})
+            ),
             ack_rate=self._rate(data.get("message_stats", {}).get("ack_details", {})),
             node_memory_bytes=self._get_node_memory(data.get("node", "")),
         )
@@ -118,9 +122,15 @@ class RabbitMQMonitor:
                     messages_ready=q.get("messages_ready", 0),
                     messages_unacked=q.get("messages_unacknowledged", 0),
                     consumers=q.get("consumers", 0),
-                    publish_rate=self._rate(q.get("message_stats", {}).get("publish_details", {})),
-                    deliver_rate=self._rate(q.get("message_stats", {}).get("deliver_get_details", {})),
-                    ack_rate=self._rate(q.get("message_stats", {}).get("ack_details", {})),
+                    publish_rate=self._rate(
+                        q.get("message_stats", {}).get("publish_details", {})
+                    ),
+                    deliver_rate=self._rate(
+                        q.get("message_stats", {}).get("deliver_get_details", {})
+                    ),
+                    ack_rate=self._rate(
+                        q.get("message_stats", {}).get("ack_details", {})
+                    ),
                     node_memory_bytes=self._get_node_memory(q.get("node", "")),
                 )
             )

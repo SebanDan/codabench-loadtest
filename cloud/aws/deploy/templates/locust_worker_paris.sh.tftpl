@@ -1,0 +1,41 @@
+#!/bin/bash
+set -euo pipefail
+
+exec > /var/log/locust-setup.log 2>&1
+
+# --- Install git ---
+dnf install -y git
+
+# --- Install uv ---
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export HOME=/root
+export PATH="/root/.local/bin:$PATH"
+echo 'export PATH="/root/.local/bin:$PATH"' >> /etc/profile.d/uv.sh
+
+# --- Install Python 3.13 via uv ---
+uv python install 3.13
+
+# --- Clone repo ---
+cd /opt
+git clone --branch ${repo_branch} ${repo_url} codabench-loadtest
+cd codabench-loadtest
+
+# --- Install dependencies ---
+uv sync
+
+# --- Write environment config ---
+cat > .env <<'ENVEOF'
+CODABENCH_HOST=http://${codabench_app_ip}
+LOCUST_REGION=${region_name}
+RESULTS_BUCKET=${results_bucket}
+ENVEOF
+
+# --- Start Locust worker ---
+uv run locust \
+  -f codabench_loadtest/locustfile.py \
+  --worker \
+  --master-host ${master_ip} \
+  --host "http://${codabench_app_ip}" \
+  &>> /var/log/locust.log &
+
+echo "Locust worker started, master=${master_ip}"

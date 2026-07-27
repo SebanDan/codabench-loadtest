@@ -83,7 +83,9 @@ locust.conf
 *locust.conf
 
 infra/*
+.terraform/
 .agitmodules
 .gitmodules
 infra/codabench
 .DS_Store
+.terraform.lock.hcl

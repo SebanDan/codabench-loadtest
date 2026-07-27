@@ -2,12 +2,10 @@ import re
 from typing import TYPE_CHECKING
 
 from locust import between, tag, task
-from locust_plugins.users.playwright import (
-    PageWithRetry,  # type: ignore
-    PlaywrightUser,  # type: ignore
-    event,  # type: ignore
-    pw,  # type: ignore
-)
+from locust_plugins.users.playwright import PageWithRetry  # type: ignore
+from locust_plugins.users.playwright import PlaywrightUser  # type: ignore
+from locust_plugins.users.playwright import event  # type: ignore
+from locust_plugins.users.playwright import pw  # type: ignore
 from playwright.async_api import expect  # type: ignore
 
 from codabench_loadtest.models import User

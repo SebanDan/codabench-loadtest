@@ -6,7 +6,12 @@ Pré-requis :
   - AWS CLI configuré (profil codabench ou autre via AWS_PROFILE)
   - Terraform apply fait (infra/load-generators)
   - Fichier .env configuré sur les instances (fait automatiquement par user-data)
-  - Credentials RabbitMQ sont injectés par Terraform (variables.tf)
+  - Credentials RabbitMQ stockés dans AWS SSM Parameter Store :
+      /codabench-loadtest/rabbitmq-user       (String)
+      /codabench-loadtest/rabbitmq-password    (SecureString, chiffré)
+    Terraform les lit automatiquement via data sources (data.tf) et les
+    injecte dans le .env du master au déploiement. Aucun secret en dur
+    dans le code.
   - Services Codabench démarrés sur 10.0.11.11 (voir section TROUBLESHOOTING)
 
 IMPORTANT — Routage réseau Paris :
@@ -259,9 +264,9 @@ Ou merger la feature branch dans main avant de tester.
 ==============================================================================
 
 1. Connectivité Codabench depuis le Locust master (via SSM) :
-   - Django/Caddy (10.0.11.11:80)  → HTTP 200 ✓
-   - RabbitMQ API (10.0.11.11:15672) → HTTP 200 ✓
-   - ALB DNS (public)               → HTTP 000 ✗ (hairpin NAT, attendu)
+   - Django/Caddy (10.0.11.11:80)  → HTTP 200 OK
+   - RabbitMQ API (10.0.11.11:15672) → HTTP 200 OK
+   - ALB DNS (public)               → HTTP 000 FAIL (hairpin NAT, attendu)
 
 2. Monitoring RabbitMQ (rabbitmq_monitor.py, 15s de test) :
    - 4 queues détectées : celeryev.* (×2), site-worker, pidbox
@@ -274,3 +279,15 @@ Ou merger la feature branch dans main avant de tester.
    - 9 containers Docker up (django, rabbit, db, redis, caddy, minio,
      site_worker, flower, builder)
    - Target group ALB : healthy sur port 8000
+
+4. Credentials RabbitMQ via SSM Parameter Store :
+   - /codabench-loadtest/rabbitmq-user       → lecture OK (String)
+   - /codabench-loadtest/rabbitmq-password    → lecture OK (SecureString, déchiffré)
+   - Terraform data sources fonctionnels (data.tf)
+   - Credentials injectés dans le .env du master via user-data template
+
+Statut global : tout fonctionne OK
+   - Connectivité réseau Paris → Codabench (HTTP + RabbitMQ)
+   - Monitoring RabbitMQ (CSV généré, queues détectées)
+   - Credentials sécurisés (SSM Parameter Store, pas de secrets dans le code)
+   - Scripts SSM opérationnels (run_test.sh, stop_test.sh, collect_results.sh)

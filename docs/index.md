@@ -14,6 +14,6 @@ Please consult the [Project Readme](https://github.com/SebanDan/codabench-loadte
 
 ## Setup on AWS
 
-[Install condabench on AWS](aws/codabench.md)
+[Install condabench on AWS](cloud/aws/codabench.md)
 
-[Setup the codabench loadtesting tool on AWS](aws/loadtest.md)
+[Setup the codabench loadtesting tool on AWS](cloud/aws/loadtest.md)

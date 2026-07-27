@@ -180,7 +180,7 @@ Network flows:
 
 ```bash
 # 1. Initialize Terraform (downloads providers, configures S3 backend)
-cd infra/load-generators
+cd cloud/aws/deploy
 terraform init
 
 # 2. Preview what will be created

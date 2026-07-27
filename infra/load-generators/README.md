@@ -50,7 +50,7 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 ## Architecture diagram
 
 ```
-                         Your laptop
+                         Operator laptop
                              │
                              │ SSM port forward :8089
                              ▼
@@ -201,28 +201,93 @@ aws ssm start-session \
   --profile codabench
 ```
 
-## Running a multi-region test
+## Running tests
+
+Locust starts automatically on boot (master + Paris workers). You can
+configure and launch tests from the web UI, or use the SSM-based scripts
+below to manage tests from your laptop without recreating instances.
+
+### Via the web UI (simplest)
+
+Locust master auto-starts on boot, so the web UI is available immediately
+after `terraform apply`. No script needed — just port-forward and open
+your browser:
 
 ```bash
-# Step 1 — Start RabbitMQ monitoring (from Paris master, via SSM)
+aws ssm start-session \
+  --target "$(terraform output -raw paris_locust_master_id)" \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters '{"portNumber":["8089"],"localPortNumber":["8089"]}' \
+  --profile codabench
+```
+
+Then open http://localhost:8089 and configure your test (users, spawn rate, host).
+
+> **Limitation:** the web UI does not support tag filtering. When launched
+> from the UI, **all scenarios run together** (smoke + normal + clumsy + heavy).
+> To run a specific scenario (e.g. only `heavy`), use `run_test.sh` below —
+> it restarts Locust with `--tags` so only the selected scenarios execute.
+
+### Via scripts (tag filtering, multi-region, git pull)
+
+```bash
+# Run a normal test with 50 users for 10 minutes
+./scripts/run_test.sh --tags normal --users 50 --duration 10m
+
+# Run the heavy (OOM) scenario, Paris only
+./scripts/run_test.sh --tags heavy --users 10 --duration 5m --paris-only
+
+# Run the cancellation scenario on a specific branch
+./scripts/run_test.sh --tags clumsy --users 20 --duration 15m --branch feat/new-scenario
+```
+
+The `run_test.sh` script:
+1. Pulls the latest code on all instances (`git pull` + `uv sync`)
+2. Restarts Locust master and Paris workers with the requested tags
+3. Starts headless runs on remote regions (US East, Asia Pacific)
+
+Use `--skip-pull` to skip the git pull step if code hasn't changed.
+
+### Stop a running test
+
+```bash
+./scripts/stop_test.sh             # Stop all regions
+./scripts/stop_test.sh --paris-only  # Stop Paris only
+```
+
+### Manual workflow (via SSM + web UI)
+
+```bash
+# 1. Port-forward the Locust master UI
+aws ssm start-session \
+  --target "$(terraform output -raw paris_locust_master_id)" \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters '{"portNumber":["8089"],"localPortNumber":["8089"]}' \
+  --profile codabench
+# Then open http://localhost:8089 and configure the test from the UI
+
+# 2. (Optional) Start RabbitMQ monitoring from the master
+aws ssm start-session --target "$(terraform output -raw paris_locust_master_id)" --profile codabench
+# Inside the session:
 cd /opt/codabench-loadtest
 uv run python queue_metrics_watcher.py --queue submissions --duration 1800
+```
 
-# Step 2 — Start Locust Paris (master auto-starts on boot, workers connect to it)
-# Open http://localhost:8089 via SSM port forwarding and configure the test
+### RabbitMQ monitoring
 
-# Step 3 — Start remote workers (US/Asia, manually via SSM)
-cd /opt/codabench-loadtest
-uv run locust \
-  -f codabench_loadtest/locustfile.py \
-  --host http://<alb-dns> \
-  --headless --users 100 --run-time 15m \
-  --csv runs/<run-name>_<region>
+> **TODO:** `queue_metrics_watcher.py` does not exist yet. It should run on the
+> Locust master (which has direct access to 10.0.11.11:15672) and record queue
+> depth, consumer count, publish/deliver rates, and RabbitMQ memory usage in
+> parallel with Locust runs. Output should be CSV in `runs/` so it gets collected
+> alongside Locust results by `collect_results.sh`.
 
-# Step 4 — Collect results from all regions
+### Collect results
+
+```bash
+# Download CSV results from all regions
 ./scripts/collect_results.sh <run-name>
 
-# Step 5 — Generate report
+# Generate report
 uv run python reports/generate_report.py \
   --regions paris,us-east,ap-southeast \
   --run <run-name>
@@ -266,10 +331,15 @@ load-generators/
 │       ├── variables.tf
 │       └── outputs.tf
 │
-└── templates/           # EC2 user-data boot scripts
+└── templates/           # EC2 user-data boot scripts (install + auto-start Locust)
     ├── locust_master.sh.tftpl
     ├── locust_worker_paris.sh.tftpl
     ├── locust_worker_remote.sh.tftpl
     └── playwright.sh.tftpl
+
+scripts/                 # Operator scripts (run from your laptop)
+├── run_test.sh          # Launch a test via SSM (git pull + restart Locust with params)
+├── stop_test.sh         # Stop all running Locust processes via SSM
+└── collect_results.sh   # Download CSV results from all regions via S3
 ```
 

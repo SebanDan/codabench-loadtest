@@ -8,8 +8,9 @@ dnf install -y git aws-cli
 
 # --- Install uv ---
 curl -LsSf https://astral.sh/uv/install.sh | sh
-export PATH="$HOME/.local/bin:$PATH"
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> /etc/profile.d/uv.sh
+export HOME=/root
+export PATH="/root/.local/bin:$PATH"
+echo 'export PATH="/root/.local/bin:$PATH"' >> /etc/profile.d/uv.sh
 
 # --- Install Python 3.13 via uv ---
 uv python install 3.13

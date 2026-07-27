@@ -35,11 +35,6 @@ variable "codabench_app_sg_name" {
   default = "codabench-prodlike-codabench-sg"
 }
 
-variable "codabench_iam_profile_name" {
-  type    = string
-  default = "codabench-prodlike-ssm-instance-profile"
-}
-
 variable "codabench_app_ip" {
   description = "Private IP of the Codabench app instance (Django/Caddy/RabbitMQ)"
   type        = string

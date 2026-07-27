@@ -16,7 +16,7 @@ set -euo pipefail
 
 # AWS CLI profile — override with AWS_PROFILE env var if yours differs (e.g. AWS_PROFILE=default)
 PROFILE="${AWS_PROFILE:-codabench}"
-TF_DIR="infra/load-generators"
+TF_DIR="/deploy"
 PARIS_ONLY=false
 
 while [[ $# -gt 0 ]]; do

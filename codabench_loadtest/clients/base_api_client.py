@@ -34,6 +34,12 @@ class CodabenchClient:
             self.session.headers["Host"] = config.caddy_hostname
         self._authenticated = False
 
+    def new_session(self) -> Session:
+        """Return a new session with the same headers as the main session."""
+        new_session = Session()
+        new_session.headers.update(self.session.headers)
+        return new_session
+
     # ------------------------------------------------------------------ auth
 
     def get_api_token(self, username: str, password: str | SecretStr) -> str:
@@ -74,7 +80,7 @@ class CodabenchClient:
 
         This is used for creating/deleting users via the admin interface.
         """
-        admin_session = Session()
+        admin_session = self.new_session()
 
         login_url = f"{self.host}/admin/login/"
         admin_session.get(login_url)  # sets the csrftoken cookie
@@ -227,7 +233,7 @@ class CodabenchClient:
         """Register a user as a participant of the competition."""
 
         token = self.get_api_token(username, password)
-        resp = Session().post(
+        resp = self.new_session().post(
             f"{self.host}/api/competitions/{competition_id}/register/",
             headers={"Authorization": f"Token {token}"},
         )

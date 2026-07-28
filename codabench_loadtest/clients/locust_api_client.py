@@ -27,6 +27,8 @@ class CodabenchLocustClient(CodabenchClient):
     ) -> None:
         super().__init__(config=config)
         self.session = session
+        if config.caddy_hostname:
+            self.session.headers["Host"] = config.caddy_hostname
 
     def upload_submission(
         self,

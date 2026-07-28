@@ -26,7 +26,7 @@ uv sync
 # --- Write environment config ---
 cat > .env <<'ENVEOF'
 CODABENCH_HOST=http://${codabench_app_ip}
-CODABENCH_SERVER_NAME=localhost
+CODABENCH_CADDY_HOSTNAME=localhost
 CODABENCH_USERNAME=${codabench_username}
 CODABENCH_PASSWORD=${codabench_password}
 LOCUST_REGION=${region_name}

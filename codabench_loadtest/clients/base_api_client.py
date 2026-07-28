@@ -30,6 +30,8 @@ class CodabenchClient:
         self.host = config.host.rstrip("/")
         self.settings = config
         self.session = Session()
+        if config.server_name:
+            self.session.headers["Host"] = config.server_name
         self._authenticated = False
 
     # ------------------------------------------------------------------ auth

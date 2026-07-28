@@ -15,6 +15,9 @@ class Settings(BaseSettings):
 
     # Target host
     host: str = "http://localhost:8000"
+    # Override the HTTP Host header (needed when Caddy only matches a specific
+    # server name, e.g. "localhost", but we connect via IP).
+    server_name: str = ""
 
     # Authentication — defaults empty so anonymous web/ scenarios work.
     # Scenarios requiring auth must call require_auth() before use.

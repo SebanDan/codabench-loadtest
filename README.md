@@ -1,6 +1,6 @@
 # codabench-loadtest
 
-[![CI](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml) [![Python versions](https://img.shields.io/badge/python-3.13-blue)](https://docs.python.org/3/whatsnew/)
+[![Python versions](https://img.shields.io/badge/python-3.13-blue)](https://docs.python.org/3/whatsnew/) [![CI](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml) [![Release](https://github.com/SebanDan/codabench-loadtest/actions/workflows/release.yml/badge.svg)](https://github.com/SebanDan/codabench-loadtest/actions/workflows/release.yml)
 
 This repository provides load testing scenarios for the codabench platform based on [Locust](https://locust.io).
 

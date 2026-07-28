@@ -10,14 +10,14 @@ set -euo pipefail
 #   ./scripts/collect_results.sh 2026-07-24_peak-test
 #
 # Prerequisites:
-#   - AWS CLI configured with the codabench profile
+#   - AWS CLI configured (set AWS_PROFILE if not using the default profile)
 #   - SSM access to remote instances
 #   - Run from the repo root on the Locust master (Paris)
 
 RUN_NAME="${1:?Usage: $0 <run-name>}"
 BUCKET="${RESULTS_BUCKET:-codabench-loadtest-results}"
-# AWS CLI profile — override with AWS_PROFILE env var if yours differs (e.g. AWS_PROFILE=default)
-PROFILE="${AWS_PROFILE:-codabench}"
+# AWS CLI profile — set AWS_PROFILE env var to use a non-default profile.
+PROFILE="${AWS_PROFILE:-default}"
 LOCAL_DIR="runs/${RUN_NAME}"
 
 echo "=== Collecting results for run: ${RUN_NAME} ==="

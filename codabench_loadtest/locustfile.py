@@ -22,7 +22,7 @@ def _(parser):
         help="Environment file name to use for the load test (local or prod).",
     )
     parser.add_argument(
-        "--competition-filter",
+        "--competitions",
         type=str,
         nargs="+",
         default=None,
@@ -42,7 +42,7 @@ def on_init(environment, **kwargs):
     environment.data_dir = DATA_DIR
     environment.competition_pool = env_setup.get_competition_pool(
         competition_dir=DATA_DIR,
-        competition_filter=environment.parsed_options.competition_filter,
+        competition_filter=environment.parsed_options.competitions,
     )
 
 

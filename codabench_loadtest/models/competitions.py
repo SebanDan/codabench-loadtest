@@ -13,7 +13,7 @@ class CompetitionZip(BaseModel):
     id: int | None = Field(
         default=None, description="Unique identifier for the competition"
     )
-    phase: int | None = Field(
+    phase_id: int | None = Field(
         default=None, description="Unique identifier for the competition phase"
     )
     bundle_path: Path
@@ -23,11 +23,10 @@ class CompetitionZip(BaseModel):
     def name(self) -> str:
         return self.bundle_path.stem
 
-    @property
-    def phase_id(self) -> int:
-        if self.phase is None and self.id is None:
+    def get_phase_id(self) -> int:
+        if self.phase_id is None and self.id is None:
             raise ValueError("Competition phase ID is not set")
-        return self.phase or self.id  # type: ignore
+        return self.phase_id or self.id  # type: ignore
 
     def get_random_submission_zip(self) -> SubmissionZip:
         """Get a submission from the submission pool."""
@@ -91,10 +90,10 @@ class CompetitionPool(BaseModel):
             ]
         )
 
-    def get_random_competition_id(self) -> CompetitionZip:
+    def get_random_competition(self) -> CompetitionZip:
         if not self.competitions:
             raise ValueError("Competition pool is empty")
-        competition_ids = [c for c in self.competitions if c.id is not None]
-        if not competition_ids:
+        valid_competitions = [c for c in self.competitions if c.id is not None]
+        if not valid_competitions:
             raise ValueError("No competitions with valid IDs found")
-        return random.choice(competition_ids)
+        return random.choice(valid_competitions)

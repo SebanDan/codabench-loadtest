@@ -45,7 +45,7 @@ class SubmitterUser(BaseUser, HttpUser):
         )
         submission = self.codabench_client.create_submission(
             data["key"],
-            phase=competition.phase_id,
+            phase=competition.get_phase_id(),
             name=request_name,
         )
         if wait_for_completion:

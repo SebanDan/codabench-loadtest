@@ -89,3 +89,4 @@ infra/*
 infra/codabench
 .DS_Store
 .terraform.lock.hcl
+*.png

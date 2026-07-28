@@ -23,12 +23,12 @@ set -euo pipefail
 #   --branch BRANCH     Git branch to checkout before pulling. Default: current branch
 #
 # Prerequisites:
-#   - AWS CLI configured with the codabench profile
-#   - Terraform deployed (infra/load-generators)
+#   - AWS CLI configured (set AWS_PROFILE if not using the default profile)
+#   - Terraform deployed (cloud/aws/deploy)
 #   - Run from the repo root
 
-# AWS CLI profile — override with AWS_PROFILE env var if yours differs (e.g. AWS_PROFILE=default)
-PROFILE="${AWS_PROFILE:-codabench}"
+# AWS CLI profile — set AWS_PROFILE env var to use a non-default profile.
+PROFILE="${AWS_PROFILE:-default}"
 TF_DIR="deploy"
 
 # --- Defaults ---

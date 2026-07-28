@@ -16,19 +16,16 @@ terraform {
 }
 
 provider "aws" {
-  alias   = "paris"
-  region  = "eu-west-1"
-  profile = var.aws_profile
+  alias  = "paris"
+  region = "eu-west-1"
 }
 
 provider "aws" {
-  alias   = "us_east"
-  region  = "us-east-1"
-  profile = var.aws_profile
+  alias  = "us_east"
+  region = "us-east-1"
 }
 
 provider "aws" {
-  alias   = "ap_southeast"
-  region  = "ap-southeast-1"
-  profile = var.aws_profile
+  alias  = "ap_southeast"
+  region = "ap-southeast-1"
 }

@@ -1,8 +1,3 @@
-variable "aws_profile" {
-  type    = string
-  default = "codabench"
-}
-
 variable "name_prefix" {
   type    = string
   default = "codabench-loadtest"

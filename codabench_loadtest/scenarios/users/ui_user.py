@@ -59,10 +59,11 @@ class UIUser(PlaywrightUser):
             self,
             f"[UI] Competition {competition_zip.name} Submit task {submission.zip_name}",
         ):
+            await page.goto(f"/competitions/{competition_zip.id}/")
             await page.get_by_text("My Submissions").click()
 
             async with page.expect_file_chooser() as fc_info:
-                await page.get_by_role("button", name=" ").click()
+                await page.locator("button:has(i.attach.icon)").click()
             file_chooser = await fc_info.value
             await file_chooser.set_files(str(submission.zip_path))
 

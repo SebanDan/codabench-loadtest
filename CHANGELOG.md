@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.1.2 (2026-07-29)
+
+### Bug Fixes
+
+- Playwright scenario
+  ([`afeebcd`](https://github.com/SebanDan/codabench-loadtest/commit/afeebcd8a9e4df0eaf58cc93dd259184d664f4a0))
+
+
 ## v1.1.1 (2026-07-29)
 
 ### Bug Fixes

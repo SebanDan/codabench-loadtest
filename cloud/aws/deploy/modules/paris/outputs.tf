@@ -25,3 +25,8 @@ output "locust_subnet_id" {
 output "alb_dns" {
   value = data.aws_lb.codabench.dns_name
 }
+
+output "master_nlb_dns" {
+  description = "Public DNS of the NLB exposing Locust master ports to remote workers."
+  value       = aws_lb.locust_master.dns_name
+}

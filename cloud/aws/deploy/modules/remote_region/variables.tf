@@ -48,6 +48,11 @@ variable "alb_dns" {
   type        = string
 }
 
+variable "master_nlb_dns" {
+  description = "Public DNS of the NLB exposing Locust master ports (5557-5558)."
+  type        = string
+}
+
 variable "repo_url" {
   type = string
 }

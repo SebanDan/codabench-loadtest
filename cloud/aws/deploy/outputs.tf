@@ -42,3 +42,8 @@ output "results_bucket" {
   description = "S3 bucket for collecting results from all regions."
   value       = aws_s3_bucket.results.bucket
 }
+
+output "master_nlb_dns" {
+  description = "Public DNS of the NLB for remote workers to connect to master."
+  value       = module.paris.master_nlb_dns
+}

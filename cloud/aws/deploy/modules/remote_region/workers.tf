@@ -30,6 +30,7 @@ resource "aws_launch_template" "locust_worker" {
     results_bucket     = var.results_bucket
     region_name        = var.region_name
     alb_dns            = var.alb_dns
+    master_nlb_dns     = var.master_nlb_dns
     codabench_username = var.codabench_username
     codabench_password = var.codabench_password
   }))

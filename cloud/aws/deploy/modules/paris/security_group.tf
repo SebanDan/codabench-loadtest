@@ -42,6 +42,16 @@ resource "aws_vpc_security_group_egress_rule" "to_rabbitmq" {
   description                  = "RabbitMQ management API monitoring"
 }
 
+# Locust workers -> master (ZeroMQ 5557-5558, same SG)
+resource "aws_vpc_security_group_egress_rule" "workers_to_master" {
+  security_group_id            = aws_security_group.locust.id
+  referenced_security_group_id = aws_security_group.locust.id
+  from_port                    = 5557
+  to_port                      = 5558
+  ip_protocol                  = "tcp"
+  description                  = "Locust worker to master (ZeroMQ)"
+}
+
 # Internet access via NAT: pip install, git clone
 resource "aws_vpc_security_group_egress_rule" "to_internet" {
   security_group_id = aws_security_group.locust.id

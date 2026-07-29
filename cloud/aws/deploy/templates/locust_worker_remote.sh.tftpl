@@ -34,13 +34,12 @@ ENVEOF
 
 cp .env .github/env/prod.env
 
-# Remote workers do NOT auto-start Locust.
-# Runs are triggered manually via SSM:
-#
-#   cd /opt/codabench-loadtest && uv run locust \
-#     -f codabench_loadtest/locustfile.py \
-#     --host "http://${alb_dns}" \
-#     --headless --users 100 --run-time 15m \
-#     --csv runs/<run-name>_${region_name}
+# --- Start Locust worker (connects to master via NLB) ---
+uv run locust \
+  -f codabench_loadtest/locustfile.py \
+  --worker \
+  --master-host ${master_nlb_dns} \
+  --host "http://${alb_dns}" \
+  &>> /var/log/locust.log &
 
-echo "Remote worker ready (${region_name}). Locust NOT started — trigger manually via SSM."
+echo "Locust worker started (${region_name}), master=${master_nlb_dns}"

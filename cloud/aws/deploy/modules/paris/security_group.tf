@@ -74,6 +74,16 @@ resource "aws_vpc_security_group_ingress_rule" "master_workers" {
   description                  = "Locust master-worker communication"
 }
 
+# Locust master ← remote workers via NLB (public internet)
+resource "aws_vpc_security_group_ingress_rule" "master_workers_nlb" {
+  security_group_id = aws_security_group.locust.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 5557
+  to_port           = 5558
+  ip_protocol       = "tcp"
+  description       = "Locust master-worker via NLB (remote regions)"
+}
+
 # --- Rules on EXISTING SGs: allow Locust traffic in ---
 
 resource "aws_vpc_security_group_ingress_rule" "alb_from_locust" {

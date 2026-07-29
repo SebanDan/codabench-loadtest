@@ -46,6 +46,7 @@ module "us_east" {
   worker_desired_capacity   = var.us_east_worker_desired
   iam_instance_profile_name = aws_iam_instance_profile.locust_us_east.name
   alb_dns                   = module.paris.alb_dns
+  master_nlb_dns            = module.paris.master_nlb_dns
   repo_url                  = var.loadtest_repo_url
   repo_branch               = var.loadtest_repo_branch
   results_bucket            = aws_s3_bucket.results.bucket
@@ -69,6 +70,7 @@ module "ap_southeast" {
   worker_desired_capacity   = var.ap_southeast_worker_desired
   iam_instance_profile_name = aws_iam_instance_profile.locust_ap_southeast.name
   alb_dns                   = module.paris.alb_dns
+  master_nlb_dns            = module.paris.master_nlb_dns
   repo_url                  = var.loadtest_repo_url
   repo_branch               = var.loadtest_repo_branch
   results_bucket            = aws_s3_bucket.results.bucket

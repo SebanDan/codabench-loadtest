@@ -18,6 +18,9 @@ resource "aws_launch_template" "locust_worker" {
     codabench_app_ip   = var.codabench_app_ip
     codabench_username = var.codabench_username
     codabench_password = var.codabench_password
+    rabbitmq_user      = var.codabench_rabbitmq_user
+    rabbitmq_password  = var.codabench_rabbitmq_password
+    alb_dns            = data.aws_lb.codabench.dns_name
   }))
 
   block_device_mappings {

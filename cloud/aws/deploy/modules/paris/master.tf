@@ -16,6 +16,7 @@ resource "aws_instance" "locust_master" {
     rabbitmq_password  = var.codabench_rabbitmq_password
     codabench_username = var.codabench_username
     codabench_password = var.codabench_password
+    alb_dns            = data.aws_lb.codabench.dns_name
   })
 
   root_block_device {

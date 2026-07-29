@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
+export HOME=/root
 exec > /var/log/locust-setup.log 2>&1
 
 # --- Install git ---
@@ -8,7 +9,6 @@ dnf install -y git
 
 # --- Install uv ---
 curl -LsSf https://astral.sh/uv/install.sh | sh
-export HOME=/root
 export PATH="/root/.local/bin:$PATH"
 echo 'export PATH="/root/.local/bin:$PATH"' >> /etc/profile.d/uv.sh
 
@@ -24,23 +24,28 @@ cd codabench-loadtest
 uv sync
 
 # --- Write environment config ---
-cat > .env <<'ENVEOF'
+cat > .github/env/prod.env <<'ENVEOF'
 CODABENCH_HOST=http://${codabench_app_ip}
 CODABENCH_CADDY_HOSTNAME=localhost
 CODABENCH_USERNAME=${codabench_username}
 CODABENCH_PASSWORD=${codabench_password}
+CODABENCH_RABBITMQ_URL=http://${codabench_app_ip}:15672
+CODABENCH_RABBITMQ_USER=${rabbitmq_user}
+CODABENCH_RABBITMQ_PASSWORD=${rabbitmq_password}
 LOCUST_REGION=${region_name}
 RESULTS_BUCKET=${results_bucket}
 ENVEOF
 
-cp .env .github/env/prod.env
+# --- Write locust.conf ---
+cat > locust.conf <<'LOCUSTEOF'
+locustfile = codabench_loadtest/locustfile.py
+worker = true
+env = prod
+master-host = ${master_ip}
+host = http://${alb_dns}
+LOCUSTEOF
 
 # --- Start Locust worker ---
-uv run locust \
-  -f codabench_loadtest/locustfile.py \
-  --worker \
-  --master-host ${master_ip} \
-  --host "http://${codabench_app_ip}" \
-  &>> /var/log/locust.log &
+nohup uv run locust &>> /var/log/locust.log &
 
 echo "Locust worker started, master=${master_ip}"

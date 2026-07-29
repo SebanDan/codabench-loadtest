@@ -1,18 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
+export HOME=/root
 exec > /var/log/locust-setup.log 2>&1
 
-# --- Install git (only system dependency needed) ---
+# --- Install git ---
 dnf install -y git
 
 # --- Install uv ---
 curl -LsSf https://astral.sh/uv/install.sh | sh
-export HOME=/root
 export PATH="/root/.local/bin:$PATH"
 echo 'export PATH="/root/.local/bin:$PATH"' >> /etc/profile.d/uv.sh
 
-# --- Install Python 3.13 via uv (not available in AL2023 repos) ---
+# --- Install Python 3.13 via uv ---
 uv python install 3.13
 
 # --- Clone repo ---
@@ -20,11 +20,11 @@ cd /opt
 git clone --branch ${repo_branch} ${repo_url} codabench-loadtest
 cd codabench-loadtest
 
-# --- Install dependencies (uv uses its managed Python 3.13) ---
+# --- Install dependencies ---
 uv sync
 
 # --- Write environment config ---
-cat > .env <<'ENVEOF'
+cat > .github/env/prod.env <<'ENVEOF'
 CODABENCH_HOST=http://${codabench_app_ip}
 CODABENCH_CADDY_HOSTNAME=localhost
 CODABENCH_USERNAME=${codabench_username}
@@ -36,13 +36,16 @@ LOCUST_REGION=${region_name}
 RESULTS_BUCKET=${results_bucket}
 ENVEOF
 
-cp .env .github/env/prod.env
+# --- Write locust.conf ---
+cat > locust.conf <<'LOCUSTEOF'
+locustfile = codabench_loadtest/locustfile.py
+master = true
+env = prod
+host = http://${alb_dns}
+web-host = 0.0.0.0
+LOCUSTEOF
 
 # --- Start Locust master ---
-uv run locust \
-  -f codabench_loadtest/locustfile.py \
-  --master \
-  --host "http://${codabench_app_ip}" \
-  &>> /var/log/locust.log &
+nohup uv run locust &>> /var/log/locust.log &
 
 echo "Locust master started"

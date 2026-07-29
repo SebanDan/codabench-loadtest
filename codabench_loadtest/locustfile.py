@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from locust import events
+from locust.runners import WorkerRunner
 
 from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser, UIUser
 from codabench_loadtest.setup import EnvironmentSetup, Settings
@@ -33,6 +34,9 @@ def _(parser):
 @events.init.add_listener
 def on_init(environment, **kwargs):
     """Initialize the environment with the required variables and settings."""
+    if isinstance(environment.runner, WorkerRunner):
+        return
+
     env_file = ENV_DIR / f"{environment.parsed_options.env}.env"
     codabench_settings = Settings(_env_file=env_file)  # type: ignore[call-arg]
     environment.codabench_settings = codabench_settings
@@ -51,8 +55,9 @@ def on_test_start(environment, **kwargs):
     """Handle actions to perform at the start of the test.
     This includes filtering user classes based on selected tasks, creating a competition, registering users.
     """
+    if isinstance(environment.runner, WorkerRunner):
+        return
 
-    # On test start, filter the users based on the selected tasks (filtered on tags) from the configuration file.
     environment.user_classes = [uc for uc in environment.user_classes if uc.tasks]
     user_pool = environment.env_setup.create_user_pools(
         size=environment.parsed_options.num_users
@@ -84,8 +89,9 @@ def on_test_stop(environment, **kwargs):
     """Handle actions to perform at the end of the test.
     This includes deleting the competition and the user pool created for the test.
     """
-    # Delete the competition first: its CASCADE FKs remove the participants and
-    # submissions that reference the users.
+    if isinstance(environment.runner, WorkerRunner):
+        return
+
     for competition in environment.competition_pool.competitions:
         environment.env_setup.delete_competition(competition.id)
     environment.env_setup.delete_users(environment.user_pool)

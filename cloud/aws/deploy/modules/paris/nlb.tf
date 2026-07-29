@@ -5,7 +5,7 @@ resource "aws_lb" "locust_master" {
   name               = "${var.name_prefix}-master-nlb"
   internal           = false
   load_balancer_type = "network"
-  subnets            = [data.aws_subnet.public[0].id, data.aws_subnet.public[1].id]
+  subnets            = data.aws_subnets.public.ids
 
   tags = {
     Name      = "${var.name_prefix}-master-nlb"
@@ -20,14 +20,10 @@ data "aws_subnets" "public" {
     values = [data.aws_vpc.codabench.id]
   }
 
-  tags = {
-    Name = "${var.codabench_vpc_name}-public-*"
+  filter {
+    name   = "map-public-ip-on-launch"
+    values = ["true"]
   }
-}
-
-data "aws_subnet" "public" {
-  count = 2
-  id    = data.aws_subnets.public.ids[count.index]
 }
 
 resource "aws_lb_target_group" "locust_master_5557" {

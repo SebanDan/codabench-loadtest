@@ -1,8 +1,10 @@
 # codabench-loadtest
 
-[![Python versions](https://img.shields.io/badge/python-3.13-blue)](https://docs.python.org/3/whatsnew/) [![CI](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml) [![Release](https://github.com/SebanDan/codabench-loadtest/actions/workflows/release.yml/badge.svg)](https://github.com/SebanDan/codabench-loadtest/actions/workflows/release.yml)
+[![Python versions](https://img.shields.io/badge/python-3.13-blue)](https://docs.python.org/3/whatsnew/) [![CI](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SebanDan/codabench-loadtest/actions/workflows/ci.yml) [![Release](https://github.com/SebanDan/codabench-loadtest/actions/workflows/release.yml/badge.svg)](https://github.com/SebanDan/codabench-loadtest/actions/workflows/release.yml) [![Docs](https://img.shields.io/badge/docs-online-blue)](https://sebandan.github.io/codabench-loadtest/)
 
 This repository provides load testing scenarios for the codabench platform based on [Locust](https://locust.io).
+
+📖 The full documentation is available on [GitHub Pages](https://sebandan.github.io/codabench-loadtest/).
 
 ## Prerequisites
 

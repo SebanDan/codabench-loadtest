@@ -10,6 +10,7 @@ from codabench_loadtest.clients.exceptions import (
     SubmissionCancellationError,
     SubmissionCreationError,
 )
+from codabench_loadtest.clients.utils import rewrite_url_host
 
 if TYPE_CHECKING:
     from locust.clients import HttpSession
@@ -69,9 +70,8 @@ class CodabenchLocustClient(CodabenchClient):
                     f"Dataset creation failed with status code {response.status_code}: {response.error}"
                 )
         data = response.json()
-        print("data", data)
         key = data["key"]
-        sassy_url = data["sassy_url"]
+        sassy_url = rewrite_url_host(data["sassy_url"], self.host)
         with self.session.put(
             sassy_url,
             data=zip_bytes,

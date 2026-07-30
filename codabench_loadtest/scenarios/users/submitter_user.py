@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from gevent import sleep
-from locust import HttpUser, between, tag, task
+from locust import between, tag, task
 
 from codabench_loadtest.clients.base_api_client import FAILED
 from codabench_loadtest.clients.exceptions import LoadTestError

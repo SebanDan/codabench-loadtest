@@ -1,8 +1,11 @@
 from urllib.parse import urlparse, urlunparse
 
 
-def rewrite_url_host(url: str, host: str) -> str:
+def rewrite_url_host(url: str, host: str | None = None) -> str:
     """Rewrite the host of a given URL to a new host, preserving the original scheme, path, query, and fragment."""
+    if not host:
+        return url  # If no new host is provided, return the original URL
+
     parsed = urlparse(url)
     new_host = urlparse(
         host if host.startswith(("http://", "https://")) else f"//{host}"

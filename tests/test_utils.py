@@ -38,6 +38,16 @@ from codabench_loadtest.clients.utils import rewrite_url_host
             "https://newhost.com:9090",
             "https://newhost.com:9090/path?query=1#fragment",
         ),
+        (
+            "http://example.com/path?query=1",
+            "",
+            "http://example.com/path?query=1",
+        ),
+        (
+            "http://example.com/path?query=1",
+            None,
+            "http://example.com/path?query=1",
+        ),
     ],
 )
 def test_rewrite_url_host(url, host, expected):

@@ -335,7 +335,7 @@ class CodabenchClient:
         return resp.json()
 
     def get_submission(self, submission_id: int) -> dict[str, Any]:
-        resp = self.session.get(f"{self.host}/api/submissions/{submission_id}/")
+        resp = self.new_session().get(f"{self.host}/api/submissions/{submission_id}/")
         resp.raise_for_status()
         return resp.json()
 

@@ -192,11 +192,13 @@ class CodabenchClient:
 
         with bundle_path.open("rb") as bundle_file:
             resp = Session().put(
-                rewrite_url_host(upload["sassy_url"], self.settings.minio_endpoint),
+                #rewrite_url_host(upload["sassy_url"], self.settings.minio_endpoint),
+                upload["sassy_url"],
                 data=bundle_file,
                 headers={"Content-Type": "application/zip"},
                 timeout=(10, 300),
             )
+        print(upload["sassy_url"])
         print(resp.status_code)
         print(resp.headers)
         print(resp.text)

@@ -108,8 +108,10 @@ def on_test_start(environment, **kwargs):
         environment.runner.send_message(
             "master_environment",
             {
-                "user_pool": user_pool.model_dump(),
-                "competition_pool": environment.competition_pool.model_dump(),
+                "user_pool": user_pool.model_dump(mode="json"),
+                "competition_pool": environment.competition_pool.model_dump(
+                    mode="json"
+                ),
             },
         )
 

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from codabench_loadtest.models import CompetitionZip, SubmissionZip
 
 
-class SubmitterUser(BaseUser, HttpUser):
+class SubmitterUser(BaseUser):
     """A user that submits tasks to the codabench platform."""
 
     wait_time = between(1, 3)

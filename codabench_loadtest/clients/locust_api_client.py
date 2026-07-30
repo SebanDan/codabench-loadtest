@@ -34,6 +34,7 @@ class CodabenchLocustClient(CodabenchClient):
     ) -> None:
         super().__init__(config=config)
         self.session = session
+        self.session.base_url = self.host
         if config.caddy_hostname:
             self.session.headers["Host"] = config.caddy_hostname
 

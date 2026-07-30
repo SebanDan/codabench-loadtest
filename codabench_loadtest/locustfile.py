@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from locust import events
 from locust.runners import MasterRunner, WorkerRunner
 
+from codabench_loadtest.models import CompetitionPool, UserPool
 from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser, UIUser
 from codabench_loadtest.setup import EnvironmentSetup, Settings
-
-if TYPE_CHECKING:
-    from codabench_loadtest.models import UserPool
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"
@@ -39,8 +36,10 @@ def _(parser):
 
 def on_master_message(environment, msg, **kwargs):
     print(f"Received message from master: {msg.data}")
-    environment.user_pool = msg.data["user_pool"]
-    environment.competition_pool = msg.data["competition_pool"]
+    environment.user_pool = UserPool.model_validate(msg.data["user_pool"])
+    environment.competition_pool = CompetitionPool.model_validate(
+        msg.data["competition_pool"]
+    )
 
 
 def on_worker_message(environment, msg, **kwargs):

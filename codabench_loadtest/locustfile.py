@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from locust import events
 from locust.runners import MasterRunner, WorkerRunner
 
 from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser, UIUser
 from codabench_loadtest.setup import EnvironmentSetup, Settings
+
+if TYPE_CHECKING:
+    from codabench_loadtest.models import UserPool
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"
@@ -72,7 +78,7 @@ def on_test_start(environment, **kwargs):
         return
     # On test start, filter the users based on the selected tasks (filtered on tags) from the configuration file.
     environment.user_classes = [uc for uc in environment.user_classes if uc.tasks]
-    user_pool = environment.env_setup.create_user_pools(
+    user_pool: UserPool = environment.env_setup.create_user_pools(
         size=environment.parsed_options.num_users
     )
     environment.user_pool = user_pool
@@ -96,10 +102,15 @@ def on_test_start(environment, **kwargs):
         )
     )
     if isinstance(environment.runner, MasterRunner):
-        print(f"Sending message to workers: user_pool={user_pool}, competition_pool={environment.competition_pool}")
+        print(
+            f"Sending message to workers: user_pool={user_pool}, competition_pool={environment.competition_pool}"
+        )
         environment.runner.send_message(
             "master_environment",
-            {"user_pool": user_pool, "competition_pool": environment.competition_pool},
+            {
+                "user_pool": user_pool.model_dump(),
+                "competition_pool": environment.competition_pool.model_dump(),
+            },
         )
 
 

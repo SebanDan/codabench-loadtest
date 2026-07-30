@@ -14,7 +14,7 @@ class EnvironmentSetup:
         self.settings = settings
         self.codabench_client = CodabenchClient(config=settings)
         self.codabench_client.login()
-        self.dataset_ids = []
+        self.dataset_ids: list[int] = []
 
     def create_user_pools(self, size: int = 10) -> UserPool:
         """

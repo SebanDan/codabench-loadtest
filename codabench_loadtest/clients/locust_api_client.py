@@ -8,7 +8,6 @@ from codabench_loadtest.clients import CodabenchClient
 from codabench_loadtest.clients.exceptions import (
     DatasetCompletionError,
     DatasetCreateError,
-    DatasetUploadError,
     SubmissionCancellationError,
     SubmissionCreationError,
 )

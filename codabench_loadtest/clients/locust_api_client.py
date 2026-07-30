@@ -63,11 +63,9 @@ class CodabenchLocustClient(CodabenchClient):
             catch_response=True,
         ) as response:
             if response.status_code not in (200, 201, 204):
-                print("config", self.session.headers, self.settings)
                 response.failure(
                     f"dataset create failed: {response.status_code} {response.error}"
                 )
-                print("error", response.error)
                 raise DatasetCreateError(
                     f"Dataset creation failed with status code {response.status_code}: {response.error}"
                 )

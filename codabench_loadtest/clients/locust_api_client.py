@@ -58,12 +58,12 @@ class CodabenchLocustClient(CodabenchClient):
             name=f"/api/datasets/ [create submission {custom_name}]",
             catch_response=True,
         ) as response:
-            if response.status_code != 201:
+            if response.status_code not in (200, 201, 204):
                 response.failure(
-                    f"dataset create failed: {response.status_code} {response.text[:200]}"
+                    f"dataset create failed: {response.status_code} {response.text}"
                 )
                 raise DatasetCreateError(
-                    f"Dataset creation failed with status code {response.status_code}: {response.text[:200]}"
+                    f"Dataset creation failed with status code {response.status_code}: {response.text}"
                 )
         data = response.json()
         print(data)
@@ -106,12 +106,12 @@ class CodabenchLocustClient(CodabenchClient):
             name=f"/api/submissions/ [create {name}]",
             catch_response=True,
         ) as response:
-            if response.status_code not in (200, 201):
+            if response.status_code not in (200, 201, 204):
                 response.failure(
-                    f"submission failed: {response.status_code} {response.text[:200]}"
+                    f"submission failed: {response.status_code} {response.text}"
                 )
                 raise SubmissionCreationError(
-                    f"Submission creation failed with status code {response.status_code}: {response.text[:200]}"
+                    f"Submission creation failed with status code {response.status_code}: {response.text}"
                 )
         return response.json()
 
@@ -123,9 +123,9 @@ class CodabenchLocustClient(CodabenchClient):
         )
         if response.status_code not in (200, 201, 204):
             response.failure(
-                f"cancel submission failed: {response.status_code} {response.text[:200]}"
+                f"cancel submission failed: {response.status_code} {response.text}"
             )
             raise SubmissionCancellationError(
-                f"Submission cancellation failed with status code {response.status_code}: {response.text[:200]}"
+                f"Submission cancellation failed with status code {response.status_code}: {response.text}"
             )
         return response.json()

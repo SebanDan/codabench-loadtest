@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from locust import events
+from locust.runners import MasterRunner, WorkerRunner
 
 from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser, UIUser
 from codabench_loadtest.setup import EnvironmentSetup, Settings
@@ -30,6 +31,15 @@ def _(parser):
     )
 
 
+def on_master_message(environment, msg, **kwargs):
+    environment.user_pool = msg.data["user_pool"]
+    environment.competition_pool = msg.data["competition_pool"]
+
+
+def on_worker_message(environment, msg, **kwargs):
+    environment.env_setup.dataset_ids.extend(msg.data)
+
+
 @events.init.add_listener
 def on_init(environment, **kwargs):
     """Initialize the environment with the required variables and settings."""
@@ -45,13 +55,19 @@ def on_init(environment, **kwargs):
         competition_filter=environment.parsed_options.competitions,
     )
 
+    if isinstance(environment.runner, (MasterRunner)):
+        environment.runner.register_message("worker_datasets_ids", on_worker_message)
+    if isinstance(environment.runner, WorkerRunner):
+        environment.runner.register_message("master_environment", on_master_message)
+
 
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
     """Handle actions to perform at the start of the test.
     This includes filtering user classes based on selected tasks, creating a competition, registering users.
     """
-
+    if isinstance(environment.runner, (WorkerRunner)):
+        return
     # On test start, filter the users based on the selected tasks (filtered on tags) from the configuration file.
     environment.user_classes = [uc for uc in environment.user_classes if uc.tasks]
     user_pool = environment.env_setup.create_user_pools(
@@ -77,16 +93,33 @@ def on_test_start(environment, **kwargs):
             kind="competition_bundle"
         )
     )
+    if isinstance(environment.runner, MasterRunner):
+        environment.runner.send_message(
+            "master_environment",
+            {"user_pool": user_pool, "competition_pool": environment.competition_pool},
+        )
 
 
 @events.test_stop.add_listener
-def on_test_stop(environment, **kwargs):
+def on_test_stop_master(environment, **kwargs):
     """Handle actions to perform at the end of the test.
     This includes deleting the competition and the user pool created for the test.
     """
+    if isinstance(environment.runner, (WorkerRunner)):
+        return
     # Delete the competition first: its CASCADE FKs remove the participants and
     # submissions that reference the users.
     for competition in environment.competition_pool.competitions:
         environment.env_setup.delete_competition(competition.id)
     environment.env_setup.delete_users(environment.user_pool)
     environment.env_setup.delete_datasets()
+
+
+@events.test_stop.add_listener
+def on_test_stop_worker(environment, **kwargs):
+    if not isinstance(environment.runner, WorkerRunner):
+        return
+
+    environment.runner.send_message(
+        "worker_datasets_ids", environment.env_setup.dataset_ids
+    )

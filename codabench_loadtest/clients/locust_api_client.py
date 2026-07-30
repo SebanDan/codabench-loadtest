@@ -71,7 +71,7 @@ class CodabenchLocustClient(CodabenchClient):
                 )
         data = response.json()
         key = data["key"]
-        sassy_url = rewrite_url_host(data["sassy_url"], self.host)
+        sassy_url = rewrite_url_host(data["sassy_url"], self.settings.minio_endpoint)
         with self.session.put(
             sassy_url,
             data=zip_bytes,

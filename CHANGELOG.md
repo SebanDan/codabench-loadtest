@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.1.3 (2026-07-30)
+
+### Bug Fixes
+
+- Master worker tasks ([#45](https://github.com/SebanDan/codabench-loadtest/pull/45),
+  [`16fd74d`](https://github.com/SebanDan/codabench-loadtest/commit/16fd74d10fddc237a9bd5b3e7339366b37f1ff9e))
+
+
 ## v1.1.2 (2026-07-29)
 
 ### Bug Fixes

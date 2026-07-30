@@ -59,15 +59,16 @@ class CodabenchLocustClient(CodabenchClient):
             catch_response=True,
         ) as response:
             if response.status_code not in (200, 201, 204):
+                print("config", self.session.headers, self.settings)
                 response.failure(
-                    f"dataset create failed: {response.status_code} {response.text}"
+                    f"dataset create failed: {response.status_code} {response.error}"
                 )
                 print("error", response.error)
                 raise DatasetCreateError(
-                    f"Dataset creation failed with status code {response.status_code}: {response.text} {response.error}"
+                    f"Dataset creation failed with status code {response.status_code}: {response.error}"
                 )
         data = response.json()
-        print(data)
+        print("data", data)
         key = data["key"]
         sassy_url = data["sassy_url"]
         with self.session.put(
@@ -78,9 +79,11 @@ class CodabenchLocustClient(CodabenchClient):
             catch_response=True,
         ) as response:
             if response.status_code not in (200, 201, 204):
-                response.failure(f"storage upload failed: {response.status_code}")
+                response.failure(
+                    f"storage upload failed: {response.status_code}: {response.error}"
+                )
                 raise DatasetUploadError(
-                    f"Dataset upload failed with status code {response.status_code}"
+                    f"Dataset upload failed with status code {response.status_code}: {response.error}"
                 )
 
         with self.session.put(
@@ -89,9 +92,11 @@ class CodabenchLocustClient(CodabenchClient):
             catch_response=True,
         ) as response:
             if response.status_code not in (200, 201, 204):
-                response.failure(f"dataset completion failed: {response.status_code}")
+                response.failure(
+                    f"dataset completion failed: {response.status_code}: {response.error}"
+                )
                 raise DatasetCompletionError(
-                    f"Dataset completion failed with status code {response.status_code}"
+                    f"Dataset completion failed with status code {response.status_code}: {response.error}"
                 )
         return data
 
@@ -109,10 +114,10 @@ class CodabenchLocustClient(CodabenchClient):
         ) as response:
             if response.status_code not in (200, 201, 204):
                 response.failure(
-                    f"submission failed: {response.status_code} {response.text}"
+                    f"submission failed: {response.status_code} {response.error}"
                 )
                 raise SubmissionCreationError(
-                    f"Submission creation failed with status code {response.status_code}: {response.text}"
+                    f"Submission creation failed with status code {response.status_code}: {response.error}"
                 )
         return response.json()
 
@@ -124,9 +129,9 @@ class CodabenchLocustClient(CodabenchClient):
         )
         if response.status_code not in (200, 201, 204):
             response.failure(
-                f"cancel submission failed: {response.status_code} {response.text}"
+                f"cancel submission failed: {response.status_code} {response.error}"
             )
             raise SubmissionCancellationError(
-                f"Submission cancellation failed with status code {response.status_code}: {response.text}"
+                f"Submission cancellation failed with status code {response.status_code}: {response.error}"
             )
         return response.json()

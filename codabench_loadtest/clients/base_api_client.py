@@ -9,6 +9,7 @@ from requests import Session
 
 if TYPE_CHECKING:
     from codabench_loadtest.setup.config import Settings
+from codabench_loadtest.clients.utils import rewrite_url_host
 
 # Submission statuses as returned by the API (Title Case).
 SUBMITTING = "Submitting"
@@ -191,11 +192,14 @@ class CodabenchClient:
 
         with bundle_path.open("rb") as bundle_file:
             resp = self.session.put(
-                upload["sassy_url"],
+                rewrite_url_host(upload["sassy_url"], self.settings.minio_endpoint),
                 data=bundle_file,
                 headers={"Content-Type": "application/zip"},
                 timeout=(10, 300),
             )
+        print(resp.status_code)
+        print(resp.headers)
+        print(resp.text)
         resp.raise_for_status()
 
         resp = self.session.put(f"{self.host}/api/datasets/completed/{upload['key']}/")

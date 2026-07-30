@@ -191,7 +191,7 @@ class CodabenchClient:
         upload = resp.json()
 
         with bundle_path.open("rb") as bundle_file:
-            resp = self.session.put(
+            resp = Session().put(
                 rewrite_url_host(upload["sassy_url"], self.settings.minio_endpoint),
                 data=bundle_file,
                 headers={"Content-Type": "application/zip"},

@@ -62,8 +62,9 @@ class CodabenchLocustClient(CodabenchClient):
                 response.failure(
                     f"dataset create failed: {response.status_code} {response.text}"
                 )
+                print("error", response.error)
                 raise DatasetCreateError(
-                    f"Dataset creation failed with status code {response.status_code}: {response.text}"
+                    f"Dataset creation failed with status code {response.status_code}: {response.text} {response.error}"
                 )
         data = response.json()
         print(data)

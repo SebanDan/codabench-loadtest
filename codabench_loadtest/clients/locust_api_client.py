@@ -80,6 +80,13 @@ class CodabenchLocustClient(CodabenchClient):
             catch_response=True,
         ) as response:
             if response.status_code not in (200, 201, 204):
+                print(
+                    "config",
+                    self.session.headers,
+                    self.settings,
+                    "sassy_url",
+                    sassy_url,
+                )
                 response.failure(
                     f"storage upload failed: {response.status_code}: {response.error}"
                 )

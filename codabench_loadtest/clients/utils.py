@@ -7,11 +7,9 @@ def rewrite_url_host(url: str, host: str) -> str:
     new_host = urlparse(
         host if host.startswith(("http://", "https://")) else f"//{host}"
     )
-    netloc = new_host.netloc or new_host.hostname
-
     return urlunparse(
         parsed._replace(
             scheme=new_host.scheme or parsed.scheme,
-            netloc=netloc,
+            netloc=new_host.netloc or new_host.hostname,
         )
     )

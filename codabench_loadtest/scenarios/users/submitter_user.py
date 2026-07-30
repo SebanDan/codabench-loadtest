@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from locust import HttpUser, between, tag, task
 
 from codabench_loadtest.clients.base_api_client import FAILED
+from codabench_loadtest.clients.exceptions import LoadTestError
 from codabench_loadtest.scenarios.tasks.common import BaseUser
 
 if TYPE_CHECKING:
@@ -35,30 +36,34 @@ class SubmitterUser(BaseUser, HttpUser):
         custom_name: str = "",
         wait_for_completion: bool = True,
     ):
-        request_name = f"{competition.name} {submission_zip.zip_name} {custom_name}"
-        data = self.codabench_client.upload_submission(
-            competition.id,  # type: ignore
-            zip_bytes=submission_zip.get_zip_bytes(),
-            zip_name=submission_zip.zip_name,
-            size=submission_zip.bytes_size(),
-            custom_name=request_name,
-        )
-        submission = self.codabench_client.create_submission(
-            data["key"],
-            phase=competition.get_phase_id(),
-            name=request_name,
-        )
-        if wait_for_completion:
-            self.codabench_client.poll_until_done(
-                self.codabench_client.get_submission, submission["id"]
+        try:
+            request_name = f"{competition.name} {submission_zip.zip_name} {custom_name}"
+            data = self.codabench_client.upload_submission(
+                competition.id,  # type: ignore
+                zip_bytes=submission_zip.get_zip_bytes(),
+                zip_name=submission_zip.zip_name,
+                size=submission_zip.bytes_size(),
+                custom_name=request_name,
             )
-        self.raise_on_submission_failure(submission_id=submission["id"])
-        return submission
+            submission = self.codabench_client.create_submission(
+                data["key"],
+                phase=competition.get_phase_id(),
+                name=request_name,
+            )
+            if wait_for_completion:
+                self.codabench_client.poll_until_done(
+                    self.codabench_client.get_submission, submission["id"]
+                )
+            self.raise_on_submission_failure(submission_id=submission["id"])
+            return submission
+        except LoadTestError as e:
+            print(f"Error during submission: {e}")
+            return submission
 
     def raise_on_submission_failure(self, submission_id: int):
         submission = self.codabench_client.get_submission(submission_id)
         if submission["status"] == FAILED:
-            raise RuntimeError(
+            raise LoadTestError(
                 f"Submission {submission_id} failed with message: {submission['message']}"
             )
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, BinaryIO, Mapping
+
 from requests import Session
+
 from codabench_loadtest.clients import CodabenchClient
 from codabench_loadtest.clients.exceptions import (
     DatasetCompletionError,
@@ -72,14 +74,11 @@ class CodabenchLocustClient(CodabenchClient):
         data = response.json()
         key = data["key"]
         sassy_url = rewrite_url_host(data["sassy_url"], self.settings.minio_endpoint)
-        
+
         with Session().put(
-            data["sassy_url"],
+            sassy_url,
             data=zip_bytes,
-            headers={#"Authorization": None, 
-                     "Content-Type": "application/zip"},
-            #name="PUT [storage upload]",
-            #catch_response=True,
+            headers={"Content-Type": "application/zip"},
         ) as response:
             if response.status_code not in (200, 201, 204):
                 print(
@@ -93,7 +92,7 @@ class CodabenchLocustClient(CodabenchClient):
                 #     f"storage upload failed: {response.status_code}: {response.error}"
                 # )
                 raise DatasetUploadError(
-                    f"Dataset upload failed with status code {response.status_code}: "#{response.error}"
+                    f"Dataset upload failed with status code {response.status_code}: "  # {response.error}"
                 )
 
         with self.session.put(

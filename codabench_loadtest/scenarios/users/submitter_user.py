@@ -1,18 +1,19 @@
 from __future__ import annotations
 
-from time import sleep
 from typing import TYPE_CHECKING
 
-from locust import HttpUser, between, tag, task
+from gevent import sleep
+from locust import between, tag, task
 
 from codabench_loadtest.clients.base_api_client import FAILED
+from codabench_loadtest.clients.exceptions import LoadTestError
 from codabench_loadtest.scenarios.tasks.common import BaseUser
 
 if TYPE_CHECKING:
     from codabench_loadtest.models import CompetitionZip, SubmissionZip
 
 
-class SubmitterUser(BaseUser, HttpUser):
+class SubmitterUser(BaseUser):
     """A user that submits tasks to the codabench platform."""
 
     wait_time = between(1, 3)
@@ -58,7 +59,7 @@ class SubmitterUser(BaseUser, HttpUser):
     def raise_on_submission_failure(self, submission_id: int):
         submission = self.codabench_client.get_submission(submission_id)
         if submission["status"] == FAILED:
-            raise RuntimeError(
+            raise LoadTestError(
                 f"Submission {submission_id} failed with message: {submission['message']}"
             )
 
@@ -70,7 +71,10 @@ class SubmitterUser(BaseUser, HttpUser):
             self.environment.competition_pool.get_random_competition()
         )
         submission_zip: SubmissionZip = competition_zip.get_random_submission_zip()
-        self._submit(competition=competition_zip, submission_zip=submission_zip)
+        try:
+            self._submit(competition=competition_zip, submission_zip=submission_zip)
+        except LoadTestError as e:
+            print(f"Error during submission: {e}")
 
     @tag("clumsy")
     @task
@@ -79,19 +83,22 @@ class SubmitterUser(BaseUser, HttpUser):
             self.environment.competition_pool.get_random_competition()
         )
         submission_zip: SubmissionZip = competition_zip.get_random_submission_zip()
-        first = self._submit(
-            competition=competition_zip,
-            submission_zip=submission_zip,
-            custom_name="+clumsy_first_submit",
-            wait_for_completion=False,
-        )
-        self.codabench_client.cancel_submission(first["id"])
-        sleep(2.5)
-        self._submit(
-            competition=competition_zip,
-            submission_zip=submission_zip,
-            custom_name="+clumsy_second_submit",
-        )
+        try:
+            first = self._submit(
+                competition=competition_zip,
+                submission_zip=submission_zip,
+                custom_name="+clumsy_first_submit",
+                wait_for_completion=False,
+            )
+            self.codabench_client.cancel_submission(first["id"])
+            sleep(2.5)
+            self._submit(
+                competition=competition_zip,
+                submission_zip=submission_zip,
+                custom_name="+clumsy_second_submit",
+            )
+        except LoadTestError as e:
+            print(f"Error during clumsy submission: {e}")
 
     @tag("heavy")
     @task
@@ -101,8 +108,11 @@ class SubmitterUser(BaseUser, HttpUser):
         )
         submission_zip: SubmissionZip = competition_zip.get_random_submission_zip()
         submission_zip.generate_heavy_space(extra_size_mb=1024, chunk_mb=50)
-        self._submit(
-            competition=competition_zip,
-            submission_zip=submission_zip,
-            custom_name="+heavy_submit",
-        )
+        try:
+            self._submit(
+                competition=competition_zip,
+                submission_zip=submission_zip,
+                custom_name="+heavy_submit",
+            )
+        except LoadTestError as e:
+            print(f"Error during heavy submission: {e}")

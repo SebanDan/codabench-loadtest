@@ -1,9 +1,9 @@
-from locust import HttpUser, between, tag, task
+from locust import between, tag, task
 
 from codabench_loadtest.scenarios.tasks.common import BaseUser
 
 
-class SmokeUser(BaseUser, HttpUser):
+class SmokeUser(BaseUser):
     """A user that performs a smoke test of the codabench platform."""
 
     wait_time = between(1, 2)

@@ -2,7 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, BinaryIO, Mapping
 
+from requests import Session
+
 from codabench_loadtest.clients import CodabenchClient
+from codabench_loadtest.clients.exceptions import (
+    DatasetCompletionError,
+    DatasetCreateError,
+    SubmissionCancellationError,
+    SubmissionCreationError,
+)
+from codabench_loadtest.clients.utils import rewrite_url_host
 
 if TYPE_CHECKING:
     from locust.clients import HttpSession
@@ -27,6 +36,7 @@ class CodabenchLocustClient(CodabenchClient):
     ) -> None:
         super().__init__(config=config)
         self.session = session
+        self.session.base_url = self.host
         if config.caddy_hostname:
             self.session.headers["Host"] = config.caddy_hostname
 
@@ -51,24 +61,23 @@ class CodabenchLocustClient(CodabenchClient):
             name=f"/api/datasets/ [create submission {custom_name}]",
             catch_response=True,
         ) as response:
-            if response.status_code != 201:
+            if response.status_code not in (200, 201, 204):
                 response.failure(
-                    f"dataset create failed: {response.status_code} {response.text[:200]}"
+                    f"dataset create failed: {response.status_code} {response.error}"
                 )
-                return
+                raise DatasetCreateError(
+                    f"Dataset creation failed with status code {response.status_code}: {response.error}"
+                )
         data = response.json()
         key = data["key"]
-        sassy_url = data["sassy_url"]
-        with self.session.put(
+        sassy_url = rewrite_url_host(data["sassy_url"], self.settings.minio_endpoint)
+
+        with Session().put(
             sassy_url,
             data=zip_bytes,
-            headers={"Authorization": None, "Content-Type": "application/zip"},
-            name="PUT [storage upload]",
-            catch_response=True,
+            headers={"Content-Type": "application/zip"},
         ) as response:
-            if response.status_code not in (200, 201, 204):
-                response.failure(f"storage upload failed: {response.status_code}")
-                return
+            response.raise_for_status()
 
         with self.session.put(
             f"/api/datasets/completed/{key}/",
@@ -76,8 +85,12 @@ class CodabenchLocustClient(CodabenchClient):
             catch_response=True,
         ) as response:
             if response.status_code not in (200, 201, 204):
-                response.failure(f"dataset completion failed: {response.status_code}")
-                return
+                response.failure(
+                    f"dataset completion failed: {response.status_code}: {response.error}"
+                )
+                raise DatasetCompletionError(
+                    f"Dataset completion failed with status code {response.status_code}: {response.error}"
+                )
         return data
 
     def create_submission(self, key: str, phase: int, name: str) -> Any:
@@ -92,11 +105,13 @@ class CodabenchLocustClient(CodabenchClient):
             name=f"/api/submissions/ [create {name}]",
             catch_response=True,
         ) as response:
-            if response.status_code not in (200, 201):
+            if response.status_code not in (200, 201, 204):
                 response.failure(
-                    f"submission failed: {response.status_code} {response.text[:200]}"
+                    f"submission failed: {response.status_code} {response.error}"
                 )
-                return
+                raise SubmissionCreationError(
+                    f"Submission creation failed with status code {response.status_code}: {response.error}"
+                )
         return response.json()
 
     def cancel_submission(self, submission_id: int) -> Any:
@@ -105,5 +120,11 @@ class CodabenchLocustClient(CodabenchClient):
             name="/api/submissions/[id]/cancel_submission/",
             catch_response=True,
         )
-        response.raise_for_status()
+        if response.status_code not in (200, 201, 204):
+            response.failure(
+                f"cancel submission failed: {response.status_code} {response.error}"
+            )
+            raise SubmissionCancellationError(
+                f"Submission cancellation failed with status code {response.status_code}: {response.error}"
+            )
         return response.json()

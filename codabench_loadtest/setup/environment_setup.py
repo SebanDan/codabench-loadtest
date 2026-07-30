@@ -34,6 +34,7 @@ class EnvironmentSetup:
         return pool
 
     def register_user_pool(self, competition_id: int, user_pool: UserPool):
+        """Register a pool of users to a competition."""
         for user in user_pool.users:
             self.codabench_client.register_to_competition(
                 username=user.username,
@@ -42,6 +43,7 @@ class EnvironmentSetup:
             )
 
     def create_competition(self, bundle_path: Path):
+        """Create a competition from a bundle and publish it."""
         result = self.codabench_client.create_competition(bundle_path)
         competition_id = result.get("resulting_competition")
         if competition_id is not None:
@@ -49,6 +51,7 @@ class EnvironmentSetup:
         return result
 
     def get_competition_first_phase(self, competition_id: int) -> int:
+        """Get the first phase ID of a competition."""
         competition_data = self.codabench_client.get_competition(competition_id)
         phases = competition_data["phases"]
         return phases[0].get("id") or competition_id
@@ -56,17 +59,23 @@ class EnvironmentSetup:
     def get_competition_pool(
         self, competition_dir: Path, competition_filter: list[str] | None = None
     ) -> CompetitionPool:
+        """Get a pool of competitions from a directory."""
         return CompetitionPool.from_dir(
             competition_dir, competition_filter=competition_filter
         )
 
     def delete_users(self, user_pool: UserPool):
+        """Delete all users in the provided user pool."""
         user_ids = [user.id for user in user_pool.users if user.id is not None]
+        print(f"Deleting {len(user_ids)} users")
         self.codabench_client.delete_users(user_ids)
 
     def delete_competition(self, competition_id: int):
+        """Delete a competition by its ID."""
+        print(f"Deleting competition with ID: {competition_id}")
         self.codabench_client.delete_competition(competition_id)
 
     def delete_datasets(self):
         """Delete all datasets that were uploaded during the load test."""
+        print(f"Deleting {len(self.dataset_ids)} datasets")
         self.codabench_client.delete_datasets(dataset_ids=self.dataset_ids)

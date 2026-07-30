@@ -78,20 +78,7 @@ class CodabenchLocustClient(CodabenchClient):
             data=zip_bytes,
             headers={"Content-Type": "application/zip"},
         ) as response:
-            if response.status_code not in (200, 201, 204):
-                print(
-                    "config",
-                    self.session.headers,
-                    self.settings,
-                    "sassy_url",
-                    sassy_url,
-                )
-                # response.failure(
-                #     f"storage upload failed: {response.status_code}: {response.error}"
-                # )
-                raise DatasetUploadError(
-                    f"Dataset upload failed with status code {response.status_code}: "  # {response.error}"
-                )
+            response.raise_for_status()
 
         with self.session.put(
             f"/api/datasets/completed/{key}/",

@@ -35,7 +35,9 @@ def _(parser):
 
 
 def on_master_message(environment, msg, **kwargs):
-    print(f"Received message from master: {msg.data}")
+    print(
+        f"Received message from master: num_users={len(msg.data['user_pool']['users'])}, num_competitions={len(msg.data['competition_pool']['competitions'])}"
+    )
     environment.user_pool = UserPool.model_validate(msg.data["user_pool"])
     environment.competition_pool = CompetitionPool.model_validate(
         msg.data["competition_pool"]
@@ -43,7 +45,7 @@ def on_master_message(environment, msg, **kwargs):
 
 
 def on_worker_message(environment, msg, **kwargs):
-    print(f"Received message from worker: {msg.data}")
+    print(f"Received message from worker: {len(msg.data)} dataset IDs")
     environment.env_setup.dataset_ids.extend(msg.data)
 
 
@@ -102,7 +104,7 @@ def on_test_start(environment, **kwargs):
     )
     if isinstance(environment.runner, MasterRunner):
         print(
-            f"Sending message to workers: user_pool={user_pool}, competition_pool={environment.competition_pool}"
+            f"Sending message to workers: num_users={len(user_pool.users)}, num_competitions={len(environment.competition_pool.competitions)}"
         )
         environment.runner.send_message(
             "master_environment",
@@ -134,7 +136,9 @@ def on_test_stop_master(environment, **kwargs):
 def on_test_stop_worker(environment, **kwargs):
     if not isinstance(environment.runner, WorkerRunner):
         return
-    print(f"Sending message to master: dataset_ids={environment.env_setup.dataset_ids}")
+    print(
+        f"Sending message to master: num_dataset_ids={len(environment.env_setup.dataset_ids)}"
+    )
     environment.runner.send_message(
         "worker_datasets_ids", environment.env_setup.dataset_ids
     )

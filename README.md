@@ -38,7 +38,7 @@ codabench-loadtest/
 │   └── prod.env                 # Auto-generated on instances by user-data
 ├── cloud/aws/deploy/            # Terraform for Locust infra (3 regions)
 ├── cloud/aws/scripts/           # SSM-based test orchestration (run/stop/collect)
-├── docs/                        # Test methodology and steps
+├── docs/                        # Methodology and steps
 ├── locust.conf                  # Config Locust (CLI)
 ```
 
@@ -53,7 +53,7 @@ cp .github/env/.env.example .github/env/local.env
 cp locust.example.conf locust.conf
 ```
 
-Edit `.github/env/local.env` with your Codabench credentials.
+Edit `.github/env/<env>.env` with your Codabench credentials.
 
 *Note: As the locust test will need to generate assets on the platform it is required to provide a valid admin username and password in the `.env` file*
 
@@ -69,11 +69,73 @@ Then run the following command to execute locust with your configuration:
 uv run locust --env local
 ```
 
+In order to run a unique type of Scenario run locust with the user classe name. Alternatively, you can create a `user_config.json` file, as supported natively by Locust, more informations can be found on the [locust documentation](https://docs.locust.io/en/stable/configuration.html#configure-users-from-command-line)
+
+```bash
+uv run locut --config-users my_user_config.json
+uv run locust SubmitterUser
+```
+
+### Environment variables & locust configuration
+
+This tool can be configured through two configuration file.
+
+**1. locust.conf:**
+
+It supports the usual locust configuration variables documented on the [locust documentation](https://docs.locust.io/en/stable/configuration.html#configuration-file). On top of these, this tool exposes the following variables:
+
+| Variable | Description | Default |
+|---|---|---|
+| `env` | Name of the environment file to load at runtime (e.g. `local`, `prod`) | `local` |
+| `competitions` | Space-separated list of competition names to test, matching the `<COMPETITION_NAME>` folders under `data/`. Omit to run all competitions found. | *(all)* |
+
+**2. `<environment>`.env:**
+
+This file will be loaded at runtime based on the `env` variable. It exposes the following variables:
+
+| Variable | Description | Default | Required |
+|---|---|---|---|
+| `CODABENCH_HOST` | Target Codabench instance URL. It will override the host provided by locust| `http://localhost:8000` | Yes |
+| `CODABENCH_CADDY_HOSTNAME` | Overrides the HTTP `Host` header when connecting via IP behind Caddy (e.g. `localhost` if Caddy's `DOMAIN_NAME` is `localhost`) | — | No |
+| `CODABENCH_API_TOKEN` | API token for authentication (takes priority over username/password if set) | — | No* |
+| `CODABENCH_USERNAME` | Username for authentication (used if no API token is set) | - | No* |
+| `CODABENCH_PASSWORD` | Password for authentication (used if no API token is set) | — | No* |
+| `CODABENCH_POLL_INTERVAL` | Delay (seconds) between submission status polls | `5.0` | No |
+| `CODABENCH_POLL_TIMEOUT` | Max time (seconds) to wait for a submission to reach a terminal status | `3600.0` | No |
+| `CODABENCH_MAX_RESPONSE_TIME_P95` | Performance threshold: max acceptable p95 response time (seconds) | `2.0` | No |
+| `CODABENCH_MAX_ERROR_RATE` | Performance threshold: max acceptable error rate (0–1) | `0.01` | No |
+| `CODABENCH_MINIO_ENDPOINT` | MinIO endpoint, for storage monitoring. Required even if MinIO isn't used, provide an empty string ("") in that case | `http://localhost:9000` | Yes |
+| `CODABENCH_MINIO_ACCESS_KEY` | MinIO access key | — | No |
+| `CODABENCH_MINIO_SECRET_KEY` | MinIO secret key | — | No |
+| `CODABENCH_RABBITMQ_URL` | RabbitMQ management URL, for queue monitoring | `http://localhost:15672` | No |
+| `CODABENCH_RABBITMQ_USER` | RabbitMQ username | `guest` | No |
+| `CODABENCH_RABBITMQ_PASSWORD` | RabbitMQ password | — | No |
+
 ### How to manage the bundles ?
 
 The assets used to simulate the competition and the submissions are located in the `/data` folder, feel free to add new sassets and modify the configuration file accordingly.
 
-The submission bundle are located in the `/data/submissions` folder. When lauching the test, this folder will be loaded to generate a `SubmissionPool`. This `SubmissionPool` can be used to manage the bundle differently according to the task before applying the submission.
+The **codabench-loadtest** tool supports multiple competition simulation at once.
+When lauching the test, this folder will be loaded to generate a `CompetitionPool` that associate each bundle with its submissions, it expect the following `/data` folder structure to load properly and will perform bundle validation at runtime.
+
+```markdown
+codabench-loadtest/
+├── data/
+│   ├── <COMPETITION_1_NAME>
+│   │   ├── <COMPETITION_BUNDLE>.zip
+│   │   └── submissions/
+│   │       ├── <SUBMISSION_EXAMPLE_1>.zip
+│   │       └── <SUBMISSION_EXAMPLE_2>.zip
+│   ├── <COMPETITION_2_NAME>/
+│   │   ├── <COMPETITION_BUNDLE>.zip
+│   │   └── submissions/
+│   │       ├── <SUBMISSION_EXAMPLE_1>.zip
+│   │       └── <SUBMISSION_EXAMPLE_2>.zip
+```
+
+***The submission bundles are located in the `/data/<competition_name>/submissions` folder.***
+
+The `CompetitionPool` holds list of `Competition` objects each backed by a `SubmissionPool` that tracks its associated submissions. This `SubmissionPool` can be used to adapt the submission bundles differently per task before applying the submission (for example, generating a large file inside the `.zip` before sending it to the api).
 
 ### Generated assets
 
@@ -99,6 +161,10 @@ This user is used to create different kind of submission on the platform by runn
 - **submit_task**: This task select a submission bundle available in the submission pool and submit it to the competition. It can be filtered by using the `normal` tag.
 - **clumsy_submit_task**: This task select a submission bundle, submit it, cancel it, lauch a new submission and re-run the previously submitted bundle. It can be filtered by using the `clumsy` tag.
 - **heavy_submit_task**: This task select a submission bundle and expand it content by 1Go before submitting it. It can be filtered by using the `heavy` tag.
+
+3. The UIUser
+
+This user is used to evaluate the codabench UI using `Playwright` and ensure the front is still responding. It can perfom submission to the competition through the UI, but as the `Playwright Browsers` are heavy it is not suited for heavy loadtesting.
 
 ### Reports
 

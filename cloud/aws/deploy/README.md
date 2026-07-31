@@ -43,6 +43,7 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 
 | Resource | Region | Role |
 |----------|--------|------|
+| NLB `codabench-loadtest-master-nlb` | eu-west-1 | Exposes master :5557-5558 to US/Asia workers (TCP passthrough) |
 | S3 bucket `codabench-loadtest-results` | eu-west-1 | Collects CSV results from all regions |
 | IAM role `codabench-loadtest-role` | global | SSM access + S3 write for results |
 | 3 instance profiles | one per region | Attach the IAM role to EC2 in each region |
@@ -50,7 +51,7 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 ## Architecture diagram
 
 ```
-                         Operator laptop
+                           Operator
                              │
                              │ SSM port forward :8089
                              ▼
@@ -64,38 +65,43 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 │  │  ┌─ Public subnets (existing) ────────────────────────────────────────┐ │ │
 │  │  │  10.0.1.0/24              10.0.2.0/24                              │ │ │
 │  │  │                                                                    │ │ │
-│  │  │  ┌──────────────────┐     ┌────────────┐                           │ │ │
-│  │  │  │ ALB              │     │ NAT Gateway│                           │ │ │
-│  │  │  │ :80 (existing)   │     │ (existing) │                           │ │ │
-│  │  │  └────────▲─────────┘     └──────┬─────┘                           │ │ │
-│  │  └───────────┼──────────────────────┼─────────────────────────────────┘ │ │
-│  │              │                      │                                   │ │
-│  │              │ ① :80                │ ③ :443                            │ │
-│  │              │ test traffic         │ pip/git                           │ │
-│  │  ┌─ Locust subnet (NEW) ───────────┼──────────────────────────────────┐ │ │
-│  │  │  10.0.21.0/24                   │                                  │ │ │
-│  │  │                                 │                                  │ │ │
-│  │  │  ┌───────────────────┐          │       ┌───────────────────┐      │ │ │
-│  │  │  │ Locust Master     │──────────┘       │ Playwright        │      │ │ │
-│  │  │  │ t3.medium         │                  │ t3.large          │      │ │ │
-│  │  │  │ :8089 web UI      │                  │ Chromium headless │      │ │ │
-│  │  │  │ :5557-5558        │                  └───────────────────┘      │ │ │
-│  │  │  └─────────┬─────┬──┘                                             │ │ │
-│  │  │    :5557   │     │ ② :15672                                       │ │ │
-│  │  │  ┌─────────▼──┐  │ monitoring                                     │ │ │
-│  │  │  │ Workers    │  │                                                │ │ │
-│  │  │  │ ASG 2-6    │  │   SG: codabench-loadtest-locust-sg             │ │ │
-│  │  │  │ t3.medium  │  │                                                │ │ │
-│  │  │  └────────────┘  │                                                │ │ │
-│  │  └──────────────────┼────────────────────────────────────────────────┘ │ │
-│  │                     │                                                  │ │
+│  │  │  ┌──────────────────┐     ┌────────────┐     ┌──────────────────┐  │ │ │
+│  │  │  │ ALB              │     │ NAT Gateway│     │ NLB (NEW)        │  │ │ │
+│  │  │  │ :80 (existing)   │     │ (existing) │     │ :5557-5558       │  │ │ │
+│  │  │  └────────▲─────────┘     └──────┬─────┘     │ TCP passthrough  │  │ │ │
+│  │  │           │                      │           └────────┬─────────┘  │ │ │
+│  │  └───────────┼──────────────────────┼────────────────────┼────────────┘ │ │
+│  │              │                      │                    │              │ │
+│  │              │ ① :80                │ ③ :443             │ ④ :5557-5558│ │
+│  │              │ US/Asia only         │ pip/git            │ ZeroMQ      │ │
+│  │  ┌─ Locust subnet (NEW) ───────────┼────────────────────┼────────────┐ │ │
+│  │  │  10.0.21.0/24                   │                    │            │ │ │
+│  │  │                                 │                    │            │ │ │
+│  │  │  ┌───────────────────┐          │                    │            │ │ │
+│  │  │  │ Locust Master     │──────────┘                    │            │ │ │
+│  │  │  │ t3.medium         │◄──────────────────────────────┘            │ │ │
+│  │  │  │ :8089 web UI      │         ┌───────────────────┐              │ │ │
+│  │  │  │ :5557-5558        │         │ Playwright        │              │ │ │
+│  │  │  └──┬────────────┬───┘         │ t3.large          │              │ │ │
+│  │  │     │ ④ :5557    │ ② :15672    │ Chromium headless │              │ │ │
+│  │  │     │ direct     │ monitoring  └───────────────────┘              │ │ │
+│  │  │  ┌──▼─────────┐ │                                                │ │ │
+│  │  │  │ Workers    │ │    SG: codabench-loadtest-locust-sg             │ │ │
+│  │  │  │ ASG 2-6    │ │                                                │ │ │
+│  │  │  │ t3.medium  │ │                                                │ │ │
+│  │  │  └──┬─────────┘ │                                                │ │ │
+│  │  │     │ ① :80     │                                                │ │ │
+│  │  │     │ direct    │                                                │ │ │
+│  │  └─────┼───────────┼────────────────────────────────────────────────┘ │ │
+│  │        │           │                                                  │ │
 │  │  ┌─ Codabench subnets (existing) ────────────────────────────────────┐ │ │
 │  │  │  10.0.11.0/24              10.0.12.0/24                           │ │ │
 │  │  │                                                                   │ │ │
 │  │  │  ┌───────────────────┐                                            │ │ │
-│  │  │  │ Codabench App     │◄───────────┘                               │ │ │
-│  │  │  │ 10.0.11.11        │  queue_metrics_watcher.py                  │ │ │
-│  │  │  │ :8000  Django     │                                            │ │ │
+│  │  │  │ Codabench App     │◄──┘                                        │ │ │
+│  │  │  │ 10.0.11.11        │◄──┘                                        │ │ │
+│  │  │  │ :80   Caddy       │                                            │ │ │
+│  │  │  │ :8000 Django      │                                            │ │ │
 │  │  │  │ :5672  RabbitMQ   │     ┌──────────────┐   ┌──────────────┐    │ │ │
 │  │  │  │ :15672 Mgmt API   │     │ Workers ASG  │   │ MinIO x4     │    │ │ │
 │  │  │  └───────────────────┘     │ (existing)   │   │ (existing)   │    │ │ │
@@ -118,10 +124,10 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 │  │  │  10.1.1.0/24                                                    │    │ │
 │  │  │                                                                 │    │ │
 │  │  │  ┌────────────────┐                                             │    │ │
-│  │  │  │ Workers ASG    │── :80 ──► INTERNET ──► ALB Paris            │    │ │
-│  │  │  │ 2-4 t3.medium  │── :443 ─► pip, git, S3                     │    │ │
-│  │  │  │ headless       │                                             │    │ │
-│  │  │  │ manual via SSM │  No VPC peering = real US user latency      │    │ │
+│  │  │  │ Workers ASG    │── ① :80 ──► INTERNET ──► ALB Paris          │    │ │
+│  │  │  │ 2-4 t3.medium  │── ③ :443 ─► pip, git, S3                   │    │ │
+│  │  │  │ auto-start     │── ④ :5557-5558 ──► INTERNET ──► NLB Paris   │    │ │
+│  │  │  │ --worker mode  │  No VPC peering = real US user latency      │    │ │
 │  │  │  └────────────────┘                                             │    │ │
 │  │  └─────────────────────────────────────────────────────────────────┘    │ │
 │  │  IGW (NEW)                                                              │ │
@@ -135,10 +141,10 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 │  │  │  10.2.1.0/24                                                    │    │ │
 │  │  │                                                                 │    │ │
 │  │  │  ┌────────────────┐                                             │    │ │
-│  │  │  │ Workers ASG    │── :80 ──► INTERNET ──► ALB Paris            │    │ │
-│  │  │  │ 2-4 t3.medium  │── :443 ─► pip, git, S3                     │    │ │
-│  │  │  │ headless       │                                             │    │ │
-│  │  │  │ manual via SSM │  No VPC peering = real Asia user latency    │    │ │
+│  │  │  │ Workers ASG    │── ① :80 ──► INTERNET ──► ALB Paris          │    │ │
+│  │  │  │ 2-4 t3.medium  │── ③ :443 ─► pip, git, S3                   │    │ │
+│  │  │  │ auto-start     │── ④ :5557-5558 ──► INTERNET ──► NLB Paris   │    │ │
+│  │  │  │ --worker mode  │  No VPC peering = real Asia user latency    │    │ │
 │  │  │  └────────────────┘                                             │    │ │
 │  │  └─────────────────────────────────────────────────────────────────┘    │ │
 │  │  IGW (NEW)                                                              │ │
@@ -155,19 +161,23 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 Network flows:
 
   ①  Test traffic (HTTP :80)
-     Paris: Locust -> 10.0.11.11:80 Caddy (direct, private)
-            The ALB is internet-facing (public IPs only), so Paris
-            instances cannot reach it (hairpin NAT not supported).
-     US/Asia: Locust -> internet -> ALB (real user latency)
+     Paris workers -> 10.0.11.11:80 Caddy (direct, private, same VPC)
+     US/Asia workers -> internet -> ALB Paris (real user latency)
+     Paris cannot use ALB (internet-facing, no hairpin NAT)
 
   ②  RabbitMQ monitoring (HTTP :15672)
-     Locust master -> 10.0.11.11 (direct, private)
-     Used by queue_metrics_watcher.py only, not by Locust workers
+     Locust master -> 10.0.11.11:15672 (direct, private)
+     Used by rabbitmq_monitor.py only, not by Locust workers
 
   ③  Internet access (HTTPS :443)
      Paris: via existing NAT Gateway
      US/Asia: via dedicated IGW (public subnet)
      For: pip install, git clone, S3 result upload
+
+  ④  ZeroMQ master-worker (TCP :5557-5558)
+     Paris workers -> master (direct, same SG, private)
+     US/Asia workers -> internet -> NLB Paris -> master
+     NLB is public, TCP passthrough, no TLS termination
 ```
 
 ## Prerequisites
@@ -320,11 +330,12 @@ infrastructure is untouched (separate Terraform state).
 ## File structure
 
 ```
-load-generators/
+cloud/aws/deploy/
 ├── provider.tf          # 3 AWS providers (paris, us-east, ap-southeast) + S3 backend
 ├── variables.tf         # All configurable inputs
 ├── main.tf              # Calls the 3 regional modules
 ├── outputs.tf           # Instance IDs, ASG names, ALB DNS, S3 bucket
+├── data.tf              # SSM parameter lookups (credentials)
 ├── s3.tf                # Results collection bucket
 ├── iam.tf               # IAM role (SSM + S3) + 3 instance profiles
 │
@@ -335,14 +346,17 @@ load-generators/
 │   │   ├── security_group.tf  # Locust SG + RabbitMQ ingress on Codabench SG
 │   │   ├── master.tf    # Locust master EC2
 │   │   ├── workers.tf   # Locust workers ASG (2-6)
+│   │   ├── nlb.tf       # NLB exposing master :5557-5558 to remote workers
 │   │   ├── playwright.tf
+│   │   ├── provider.tf
 │   │   ├── variables.tf
 │   │   └── outputs.tf
 │   │
 │   └── remote_region/   # Reused for US East and Asia Pacific
 │       ├── vpc.tf       # Dedicated VPC + public subnet + IGW
-│       ├── security_group.tf  # Egress-only (80 + 443)
+│       ├── security_group.tf  # Egress-only (80 + 443 + 5557-5558)
 │       ├── workers.tf   # Headless workers ASG
+│       ├── provider.tf
 │       ├── variables.tf
 │       └── outputs.tf
 │
@@ -352,7 +366,7 @@ load-generators/
     ├── locust_worker_remote.sh.tftpl
     └── playwright.sh.tftpl
 
-scripts/                 # Operator scripts (run from your laptop)
+cloud/aws/scripts/       # Operator scripts (run local)
 ├── run_test.sh          # Launch a test via SSM (git pull + restart Locust with params)
 ├── stop_test.sh         # Stop all running Locust processes via SSM
 └── collect_results.sh   # Download CSV results from all regions via S3

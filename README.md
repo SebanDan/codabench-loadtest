@@ -53,7 +53,7 @@ cp .github/env/.env.example .github/env/local.env
 cp locust.example.conf locust.conf
 ```
 
-Edit `.github/env/local.env` with your Codabench credentials.
+Edit `.github/env/<env>.env` with your Codabench credentials.
 
 *Note: As the locust test will need to generate assets on the platform it is required to provide a valid admin username and password in the `.env` file*
 
@@ -80,7 +80,7 @@ uv run locust SubmitterUser
 
 This tool can be configured through two configuration file.
 
-1. locust.conf:
+**1. locust.conf:**
 
 It supports the usual locust configuration variables documented on the [locust documentation](https://docs.locust.io/en/stable/configuration.html#configuration-file). On top of these, this tool exposes the following variables:
 
@@ -89,7 +89,7 @@ It supports the usual locust configuration variables documented on the [locust d
 | `env` | Name of the environment file to load at runtime (e.g. `local`, `prod`) | `local` |
 | `competitions` | Space-separated list of competition names to test, matching the `<COMPETITION_NAME>` folders under `data/`. Omit to run all competitions found. | *(all)* |
 
-2. `<environment>`.env:
+**2. `<environment>`.env:**
 
 This file will be loaded at runtime based on the `env` variable. It exposes the following variables:
 

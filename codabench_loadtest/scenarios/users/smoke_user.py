@@ -1,6 +1,6 @@
 from locust import between, tag, task
 
-from codabench_loadtest.scenarios.tasks.common import BaseUser
+from codabench_loadtest.scenarios.tasks.base_user import BaseUser
 
 
 class SmokeUser(BaseUser):

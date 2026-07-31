@@ -5,18 +5,17 @@ from typing import TYPE_CHECKING
 
 from locust import between, tag, task
 from locust_plugins.users.playwright import PageWithRetry  # type: ignore
-from locust_plugins.users.playwright import PlaywrightUser  # type: ignore
 from locust_plugins.users.playwright import event  # type: ignore
 from locust_plugins.users.playwright import pw  # type: ignore
 from playwright.async_api import expect  # type: ignore
 
-from codabench_loadtest.scenarios.tasks.playwright import login
+from codabench_loadtest.scenarios.tasks.playwright import PlaywrightBaseUser
 
 if TYPE_CHECKING:
     from codabench_loadtest.models import CompetitionZip, SubmissionZip, User
 
 
-class UIUser(PlaywrightUser):
+class UIUser(PlaywrightBaseUser):
     """A user that performs various tasks on the codabench platform through the UI."""
 
     wait_time = between(1, 2)
@@ -24,7 +23,7 @@ class UIUser(PlaywrightUser):
     async def _ensure_auth(self, page: PageWithRetry) -> User:
         codabench_user: User = self.environment.user_pool.get_random_user()
         async with event(self, "[UI] Login"):
-            await login(
+            await self.login(
                 page,
                 codabench_user.username,
                 codabench_user.password,
@@ -89,11 +88,11 @@ class UIUser(PlaywrightUser):
 
                 try:
                     await page.locator("td:nth-child(6) > span > .icon").first.click(
-                        timeout=300
+                        timeout=3000
                     )
                 except Exception:
                     await page.locator("td:nth-child(7) > span > .icon").first.click(
-                        timeout=300
+                        timeout=3000
                     )
 
                 await page.locator("div").filter(

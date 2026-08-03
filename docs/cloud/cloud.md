@@ -1,6 +1,6 @@
 ---
 title: Deploying on the cloud
-parent: Home
+parent: Welcome
 nav_order: 2
 has_children: true
 ---

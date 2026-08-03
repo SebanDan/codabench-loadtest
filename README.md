@@ -85,7 +85,7 @@ This tool can be configured through two configuration file.
 It supports the usual locust configuration variables documented on the [locust documentation](https://docs.locust.io/en/stable/configuration.html#configuration-file). On top of these, this tool exposes the following variables:
 
 | Variable | Description | Default |
-|---|---|---|
+| --- | --- | --- |
 | `env` | Name of the environment file to load at runtime (e.g. `local`, `prod`) | `local` |
 | `competitions` | Space-separated list of competition names to test, matching the `<COMPETITION_NAME>` folders under `data/`. Omit to run all competitions found. | *(all)* |
 
@@ -94,22 +94,22 @@ It supports the usual locust configuration variables documented on the [locust d
 This file will be loaded at runtime based on the `env` variable. It exposes the following variables:
 
 | Variable | Description | Default | Required |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `CODABENCH_HOST` | Target Codabench instance URL. It will override the host provided by locust| `http://localhost:8000` | Yes |
-| `CODABENCH_CADDY_HOSTNAME` | Overrides the HTTP `Host` header when connecting via IP behind Caddy (e.g. `localhost` if Caddy's `DOMAIN_NAME` is `localhost`) | — | No |
-| `CODABENCH_API_TOKEN` | API token for authentication (takes priority over username/password if set) | — | No* |
+| `CODABENCH_CADDY_HOSTNAME` | Overrides the HTTP `Host` header when connecting via IP behind Caddy (e.g. `localhost` if Caddy's `DOMAIN_NAME` is `localhost`) | - | No |
+| `CODABENCH_API_TOKEN` | API token for authentication (takes priority over username/password if set) | - | No* |
 | `CODABENCH_USERNAME` | Username for authentication (used if no API token is set) | - | No* |
-| `CODABENCH_PASSWORD` | Password for authentication (used if no API token is set) | — | No* |
+| `CODABENCH_PASSWORD` | Password for authentication (used if no API token is set) | - | No* |
 | `CODABENCH_POLL_INTERVAL` | Delay (seconds) between submission status polls | `5.0` | No |
 | `CODABENCH_POLL_TIMEOUT` | Max time (seconds) to wait for a submission to reach a terminal status | `3600.0` | No |
 | `CODABENCH_MAX_RESPONSE_TIME_P95` | Performance threshold: max acceptable p95 response time (seconds) | `2.0` | No |
 | `CODABENCH_MAX_ERROR_RATE` | Performance threshold: max acceptable error rate (0–1) | `0.01` | No |
 | `CODABENCH_MINIO_ENDPOINT` | MinIO endpoint, for storage monitoring. Required even if MinIO isn't used, provide an empty string ("") in that case | `http://localhost:9000` | Yes |
-| `CODABENCH_MINIO_ACCESS_KEY` | MinIO access key | — | No |
-| `CODABENCH_MINIO_SECRET_KEY` | MinIO secret key | — | No |
+| `CODABENCH_MINIO_ACCESS_KEY` | MinIO access key | - | No |
+| `CODABENCH_MINIO_SECRET_KEY` | MinIO secret key | - | No |
 | `CODABENCH_RABBITMQ_URL` | RabbitMQ management URL, for queue monitoring | `http://localhost:15672` | No |
 | `CODABENCH_RABBITMQ_USER` | RabbitMQ username | `guest` | No |
-| `CODABENCH_RABBITMQ_PASSWORD` | RabbitMQ password | — | No |
+| `CODABENCH_RABBITMQ_PASSWORD` | RabbitMQ password | - | No |
 
 ### How to manage the bundles ?
 

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # hostname, e.g. "localhost", but we connect via IP).
     caddy_hostname: str = "localhost:80"
 
-    # Authentication — defaults empty so anonymous web/ scenarios work.
+    # Authentication - defaults empty so anonymous web/ scenarios work.
     # Scenarios requiring auth must call require_auth() before use.
     username: str = ""
     password: SecretStr = SecretStr("")

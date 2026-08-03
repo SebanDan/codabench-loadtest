@@ -27,7 +27,7 @@ set -euo pipefail
 #   - Terraform deployed (cloud/aws/deploy)
 #   - Run from the repo root
 
-# AWS CLI profile — set AWS_PROFILE env var to use a non-default profile.
+# AWS CLI profile - set AWS_PROFILE env var to use a non-default profile.
 PROFILE="${AWS_PROFILE:-default}"
 TF_DIR="deploy"
 

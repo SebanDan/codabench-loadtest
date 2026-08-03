@@ -5,13 +5,13 @@ nav_order: 1
 ---
 
 This Terraform project deploys the load-testing infrastructure for Codabench
-across three AWS regions. It creates the machines that **generate** the load —
+across three AWS regions. It creates the machines that **generate** the load -
 the Codabench target infrastructure (the thing we're testing) is deployed
 separately and already exists.
 
 ## What gets deployed
 
-### Paris (eu-west-1) — same VPC as Codabench
+### Paris (eu-west-1) - same VPC as Codabench
 
 Lives inside the existing Codabench VPC so it can reach the ALB internally
 and monitor RabbitMQ directly.
@@ -22,20 +22,20 @@ and monitor RabbitMQ directly.
 | Locust workers | ASG 2–6 × t3.medium | Generate HTTP load against the ALB |
 | Playwright | 1 × t3.large | Measures perceived frontend latency with headless Chromium |
 
-New private subnet: `10.0.21.0/24` — internet access goes through the
+New private subnet: `10.0.21.0/24` - internet access goes through the
 existing NAT Gateway.
 
-### US East (us-east-1) — separate VPC
+### US East (us-east-1) - separate VPC
 
 | Resource | Type | Role |
 | ---------- | ------ | ------ |
 | Locust workers | ASG 2–4 × t3.medium | Headless load from the US |
 
 New VPC `10.1.0.0/16` with a public subnet. Traffic goes over the **public
-internet** to the ALB in Paris — no VPC peering, because we want to measure
+internet** to the ALB in Paris - no VPC peering, because we want to measure
 real user latency from North America.
 
-### Asia Pacific (ap-southeast-1) — separate VPC
+### Asia Pacific (ap-southeast-1) - separate VPC
 
 | Resource | Type | Role |
 | ---------- | ------ | ------ |
@@ -54,7 +54,7 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 
 ## Architecture diagram
 
-![Architecture diagram](/docs/images/loadtest_architecture.jpg)
+![Architecture diagram](/images/loadtest_architecture.jpg)
 
 ## Prerequisites
 

@@ -16,7 +16,7 @@ set -euo pipefail
 
 RUN_NAME="${1:?Usage: $0 <run-name>}"
 BUCKET="${RESULTS_BUCKET:-codabench-loadtest-results}"
-# AWS CLI profile — set AWS_PROFILE env var to use a non-default profile.
+# AWS CLI profile - set AWS_PROFILE env var to use a non-default profile.
 PROFILE="${AWS_PROFILE:-default}"
 LOCAL_DIR="runs/${RUN_NAME}"
 

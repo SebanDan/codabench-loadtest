@@ -64,7 +64,7 @@ resource "aws_vpc_security_group_egress_rule" "to_internet" {
 
 # --- Ingress rules ---
 
-# Locust master web UI (port 8089) — only from within the Locust subnet
+# Locust master web UI (port 8089) - only from within the Locust subnet
 resource "aws_vpc_security_group_ingress_rule" "master_ui" {
   security_group_id = aws_security_group.locust.id
   cidr_ipv4         = var.locust_subnet_cidr

@@ -60,10 +60,10 @@ uses AWS SSM Session Manager (no SSH bastion needed).
 | Resource | Name | Details |
 | ---------- | ------ | --------- |
 | VPC | `codabench-prodlike-vpc` | `10.0.0.0/16` |
-| Public subnet 1 | `codabench-prodlike-public-1` | `10.0.1.0/24` — `eu-west-1a` |
-| Public subnet 2 | `codabench-prodlike-public-2` | `10.0.2.0/24` — `eu-west-1b` |
-| Private subnet 1 | `codabench-prodlike-private-1` | `10.0.11.0/24` — `eu-west-1a` |
-| Private subnet 2 | `codabench-prodlike-private-2` | `10.0.12.0/24` — `eu-west-1b` |
+| Public subnet 1 | `codabench-prodlike-public-1` | `10.0.1.0/24` - `eu-west-1a` |
+| Public subnet 2 | `codabench-prodlike-public-2` | `10.0.2.0/24` - `eu-west-1b` |
+| Private subnet 1 | `codabench-prodlike-private-1` | `10.0.11.0/24` - `eu-west-1a` |
+| Private subnet 2 | `codabench-prodlike-private-2` | `10.0.12.0/24` - `eu-west-1b` |
 | NAT Gateway | `codabench-prodlike-nat-gw` | In public subnet 1; gives private instances internet access |
 | Internet Gateway | `codabench-prodlike-igw` | Attached to VPC for public subnets |
 
@@ -120,7 +120,7 @@ All security groups allow **all egress** (`0.0.0.0/0`, all protocols).
 ## Access
 
 - **Web UI:** via ALB DNS on port 80 (output: `alb_dns`)
-- **Admin/SSH:** via AWS SSM Session Manager — all instances have the
+- **Admin/SSH:** via AWS SSM Session Manager - all instances have the
   `codabench-prodlike-ssm-role` IAM role with `AmazonSSMManagedInstanceCore`
 - **MinIO Console:** via ALB at path `/minio-console`
 - **MinIO API:** via the dedicated MinIO API ALB on port 80
@@ -136,7 +136,7 @@ aws ssm start-session --target <instance-id> --profile codabench
 | ------ | --------- |
 | `provider.tf` | AWS provider config, S3 backend |
 | `variables.tf` | All input variables (CIDRs, instance types, credentials, images) |
-| `main.tf` | Root module — wires VPC, SGs, EC2, workers, ALBs, NAT gateway |
+| `main.tf` | Root module - wires VPC, SGs, EC2, workers, ALBs, NAT gateway |
 | `outputs.tf` | ALB DNS, Codabench IPs, MinIO/RabbitMQ endpoints |
 | `modules/vpc/` | VPC, subnets, route tables, internet gateway |
 | `modules/security_groups/` | All security groups and their rules |

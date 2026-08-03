@@ -1,19 +1,15 @@
 ---
-title: Install on AWS
+title: Deploy codabench on AWS
 parent: Deploying on the cloud
-nav_order: 1
+nav_order: 3
 ---
-
-# Codabench Infrastructure
-
-## Overview
 
 This Terraform project deploys a production-like Codabench environment on AWS
 (`eu-west-1`). All application instances run in **private subnets** with no
 public IP. External access goes through an internet-facing ALB; admin access
 uses AWS SSM Session Manager (no SSH bastion needed).
 
-```
+```markdown
                     ┌─────────────────────────────────────────────┐
                     │  VPC: codabench-prodlike-vpc  10.0.0.0/16   │
                     │                                             │
@@ -62,7 +58,7 @@ uses AWS SSM Session Manager (no SSH bastion needed).
 ### VPC & Networking
 
 | Resource | Name | Details |
-|----------|------|---------|
+| ---------- | ------ | --------- |
 | VPC | `codabench-prodlike-vpc` | `10.0.0.0/16` |
 | Public subnet 1 | `codabench-prodlike-public-1` | `10.0.1.0/24` — `eu-west-1a` |
 | Public subnet 2 | `codabench-prodlike-public-2` | `10.0.2.0/24` — `eu-west-1b` |
@@ -76,7 +72,7 @@ uses AWS SSM Session Manager (no SSH bastion needed).
 Both ALBs are **internet-facing** (`internal = false`), placed in the two public subnets.
 
 | ALB | Listener | Target |
-|-----|----------|--------|
+| ----- | ---------- | -------- |
 | `codabench-prodlike-alb` | `:80` HTTP | Codabench app (port 8000) |
 | | `:80` path `/minio-console/*` | MinIO Console via NGINX (port 9001) |
 | `codabench-prodlike-minio-api-alb` | `:80` HTTP | MinIO API via NGINX (port 9000) |
@@ -84,7 +80,7 @@ Both ALBs are **internet-facing** (`internal = false`), placed in the two public
 ### EC2 Instances (all in private subnets)
 
 | Instance | Private IP | Type | Subnet | Role |
-|----------|-----------|------|--------|------|
+| ---------- | ----------- | ------ | -------- | ------ |
 | `codabench-prodlike-app` | `10.0.11.11` | `m6i.4xlarge` | private-1 | Codabench Django app (port 8000) + RabbitMQ broker (port 5672) |
 | `codabench-prodlike-nginx-minio` | `10.0.11.12` | `t3.medium` | private-1 | Internal NGINX reverse proxy load-balancing MinIO nodes |
 | `codabench-prodlike-minio-1` | `10.0.11.20` | `t3.small` | private-1 | MinIO distributed storage node (2 × 100 GB EBS) |
@@ -95,7 +91,7 @@ Both ALBs are **internet-facing** (`internal = false`), placed in the two public
 ### Workers (Auto Scaling Group)
 
 | Property | Value |
-|----------|-------|
+| ---------- | ------- |
 | Name | `codabench-prodlike-workers-asg` |
 | Instance type | `c6i.large` |
 | Subnets | Both private subnets |
@@ -105,14 +101,14 @@ Both ALBs are **internet-facing** (`internal = false`), placed in the two public
 ### S3
 
 | Bucket | Role |
-|--------|------|
+| -------- | ------ |
 | `tf-codabench-backend` | Terraform state backend |
 | `codabench-prodlike-*` deploy bucket | Stores Codabench source code, synced to the app instance at boot |
 
 ## Security Groups
 
 | SG Name | Attached to | Ingress rules |
-|---------|-------------|---------------|
+| --------- | ------------- | --------------- |
 | `codabench-prodlike-alb-sg` | Both ALBs | `0.0.0.0/0` → 80, 443, 9000, 9001 |
 | `codabench-prodlike-codabench-sg` | Codabench app | ALB SG → 8000, Workers SG → 5672 |
 | `codabench-prodlike-nginx-minio-sg` | NGINX MinIO | Codabench SG → 9000, Workers SG → 9000, ALB SG → 9000/9001 |
@@ -137,7 +133,7 @@ aws ssm start-session --target <instance-id> --profile codabench
 ## Terraform Files
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `provider.tf` | AWS provider config, S3 backend |
 | `variables.tf` | All input variables (CIDRs, instance types, credentials, images) |
 | `main.tf` | Root module — wires VPC, SGs, EC2, workers, ALBs, NAT gateway |

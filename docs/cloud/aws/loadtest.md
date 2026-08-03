@@ -11,7 +11,7 @@ The load-generator infrastructure is managed by Terraform in `cloud/aws/deploy/`
 Credentials are stored in AWS SSM Parameter Store (no secrets in code):
 
 | Parameter | Type |
-|-----------|------|
+| ----------- | ------ |
 | `/codabench-loadtest/rabbitmq-user` | String |
 | `/codabench-loadtest/rabbitmq-password` | SecureString |
 | `/codabench-loadtest/codabench-username` | String |
@@ -98,6 +98,7 @@ You can configure and launch tests using the SSM-based scripts below.
 ```
 
 The `run_test.sh` script:
+
 1. Pulls the latest code on all instances (`git pull` + `uv sync`)
 2. Restarts Locust master and Paris workers with the requested tags
 3. Starts headless runs on remote regions (US East, Asia Pacific)

@@ -54,7 +54,7 @@ Same design as US East, VPC `10.2.0.0/16`. Measures real latency from Asia.
 
 ## Architecture diagram
 
-![Architecture diagram](/images/loadtest_architecture.jpg)
+![Architecture diagram]({{ '/images/loadtest_architecture.jpg' | relative_url }})
 
 ## Prerequisites
 

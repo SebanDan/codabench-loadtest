@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.1.4 (2026-08-03)
+
+### Bug Fixes
+
+- Doc parent
+  ([`a5fce78`](https://github.com/SebanDan/codabench-loadtest/commit/a5fce78130a70236d18aa5479fd565619420c2d6))
+
+### Documentation
+
+- Edit documentation
+  ([`3380146`](https://github.com/SebanDan/codabench-loadtest/commit/3380146600433c8f68aa61681df5583ee9b62f96))
+
+- Edit documentation
+  ([`41f5ff7`](https://github.com/SebanDan/codabench-loadtest/commit/41f5ff7660474fc84dcce3dd13d9b52eba84535e))
+
+- Enhance readme
+  ([`6f90067`](https://github.com/SebanDan/codabench-loadtest/commit/6f900678406637b07b751f9ee01e6efd5da39332))
+
+- Enhance readme
+  ([`ba2866e`](https://github.com/SebanDan/codabench-loadtest/commit/ba2866e3a414cea7c15b2bb2ca86112bb1484275))
+
+- Update deploy README with NLB and corrected architecture diagram
+  ([`47e4a43`](https://github.com/SebanDan/codabench-loadtest/commit/47e4a431b2db4157d2686f761c7580a8c1bc31d8))
+
+
 ## v1.1.3 (2026-07-30)
 
 ### Bug Fixes

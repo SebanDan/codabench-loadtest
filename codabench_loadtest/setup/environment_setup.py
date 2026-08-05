@@ -77,5 +77,8 @@ class EnvironmentSetup:
 
     def delete_datasets(self):
         """Delete all datasets that were uploaded during the load test."""
-        print(f"Deleting {len(self.dataset_ids)} datasets")
-        self.codabench_client.delete_datasets(dataset_ids=self.dataset_ids)
+        # TODO: Fix this method to delete only the datasets that were uploaded during the load test.
+        # This currently throws an error from the API because the datasets does not belong to the admin user.
+        # print(f"Deleting {len(self.dataset_ids)} datasets")
+        # self.codabench_client.delete_datasets(dataset_ids=self.dataset_ids)
+        self.codabench_client.delete_unused_datasets()

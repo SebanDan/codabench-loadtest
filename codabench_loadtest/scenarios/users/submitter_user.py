@@ -59,7 +59,7 @@ class SubmitterUser(BaseUser):
         self.raise_on_submission_failure(
             submission_id=submission["id"],
             name=request_name,
-            elapsed_time=(time.perf_counter() - start_time),
+            elapsed_time=int(time.perf_counter() - start_time),
         )
         return submission
 

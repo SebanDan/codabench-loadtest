@@ -36,25 +36,37 @@ class SubmitterUser(BaseUser):
         custom_name: str = "",
         wait_for_completion: bool = True,
     ):
-        request_name = f"{competition.name} {submission_zip.zip_name} {custom_name}"
-        data = self.codabench_client.upload_submission(
-            competition.id,  # type: ignore
-            zip_bytes=submission_zip.get_zip_bytes(),
-            zip_name=submission_zip.zip_name,
-            size=submission_zip.bytes_size(),
-            custom_name=request_name,
+        request_name = " ".join(
+            part for part in [competition.name, submission_zip.zip_name, custom_name] if part
         )
-        submission = self.codabench_client.create_submission(
-            data["key"],
-            phase=competition.get_phase_id(),
-            name=request_name,
-        )
-        if wait_for_completion:
-            self.codabench_client.poll_until_done(
-                self.codabench_client.get_submission, submission["id"]
+        try:
+            data = self.codabench_client.upload_submission(
+                competition.id,  # type: ignore
+                zip_bytes=submission_zip.get_zip_bytes(),
+                zip_name=submission_zip.zip_name,
+                size=submission_zip.bytes_size(),
+                custom_name=request_name,
             )
-        self.raise_on_submission_failure(submission_id=submission["id"])
-        return submission
+            submission = self.codabench_client.create_submission(
+                data["key"],
+                phase=competition.get_phase_id(),
+                name=request_name,
+            )
+            if wait_for_completion:
+                self.codabench_client.poll_until_done(
+                    self.codabench_client.get_submission, submission["id"]
+                )
+            self.raise_on_submission_failure(submission_id=submission["id"])
+            return submission
+        except LoadTestError as e:
+            self.environment.events.request.fire(
+                request_type="submission",
+                name=request_name,
+                response_time=0,
+                response_length=0,
+                exception=e,
+            )
+            raise
 
     def raise_on_submission_failure(self, submission_id: int):
         submission = self.codabench_client.get_submission(submission_id)

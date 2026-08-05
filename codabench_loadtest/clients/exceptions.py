@@ -18,5 +18,9 @@ class SubmissionCreationError(LoadTestError):
     """Raised when a submission creation fails."""
 
 
+class SubmissionStatusError(LoadTestError):
+    """Raised when a submission status check fails."""
+
+
 class SubmissionCancellationError(LoadTestError):
     """Raised when a submission cancellation fails."""

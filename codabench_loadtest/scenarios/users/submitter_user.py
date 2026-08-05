@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING
 
 from gevent import sleep
 from locust import between, tag, task
 
 from codabench_loadtest.clients.base_api_client import FAILED
-from codabench_loadtest.clients.exceptions import LoadTestError
+from codabench_loadtest.clients.exceptions import LoadTestError, SubmissionStatusError
 from codabench_loadtest.scenarios.tasks.base_user import BaseUser
 
 if TYPE_CHECKING:
@@ -49,24 +50,42 @@ class SubmitterUser(BaseUser):
             phase=competition.get_phase_id(),
             name=request_name,
         )
+        start_time = time.perf_counter()
+
         if wait_for_completion:
             self.codabench_client.poll_until_done(
                 self.codabench_client.get_submission, submission["id"]
             )
-        self.raise_on_submission_failure(submission_id=submission["id"])
+        self.raise_on_submission_failure(
+            submission_id=submission["id"],
+            name=request_name,
+            elapsed_time=(time.perf_counter() - start_time) * 1000,
+        )
         return submission
 
-    def raise_on_submission_failure(self, submission_id: int):
+    def raise_on_submission_failure(
+        self, submission_id: int, name: str, elapsed_time: float = 0
+    ):
         submission = self.codabench_client.get_submission(submission_id)
-        if submission["status"] == FAILED:
-            raise LoadTestError(
-                f"Submission {submission_id} failed with message: {submission['message']}"
+        status_message = "succeeded" if submission["status"] != FAILED else "failed"
+        exception = (
+            None
+            if submission["status"] != FAILED
+            else SubmissionStatusError(
+                f"Submission {name} failed with message: {submission.get('status_details')}"
             )
+        )
+        self.fire_event(
+            request_type="SUBMISSION STATUS",
+            name=f"Submission {name} {status_message}",
+            total_time=elapsed_time,
+            response_length=0,
+            exception=exception,
+        )
 
     @tag("normal")
     @task
     def submit_task(self):
-
         competition_zip: CompetitionZip = (
             self.environment.competition_pool.get_random_competition()
         )

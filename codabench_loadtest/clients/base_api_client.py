@@ -317,13 +317,20 @@ class CodabenchClient:
 
     def delete_datasets(self, dataset_ids: list[int]) -> None:
         """Bulk-delete datasets owned by the authenticated user."""
-        ids = list(dataset_ids)
+        ids = sorted(set(dataset_ids))
         if not ids:
             return
         self._ensure_auth()
         resp = self.session.post(
             f"{self.host}/api/datasets/delete_many/",
             json=ids,
+        )
+        resp.raise_for_status()
+
+    def delete_unused_datasets(self) -> None:
+        self._ensure_auth()
+        resp = self.session.delete(
+            f"{self.host}/api/datasets/delete_unused_datasets/",
         )
         resp.raise_for_status()
 

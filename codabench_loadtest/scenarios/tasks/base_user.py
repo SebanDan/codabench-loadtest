@@ -19,6 +19,22 @@ class BaseUser(HttpUser):
     codabench_client: CodabenchLocustClient
     _logged_in: bool = False
 
+    def fire_event(
+        self,
+        request_type: str,
+        name: str,
+        total_time: float = 0,
+        response_length: int = 0,
+        exception: Exception | None = None,
+    ):
+        self.environment.events.request.fire(
+            request_type=request_type,
+            name=name,
+            response_time=total_time,
+            response_length=response_length,
+            exception=exception,
+        )
+
     def get_codabench_client(self) -> CodabenchLocustClient:
         codabench_user: User = self.environment.user_pool.get_random_user()
         return get_custom_codabench_locust_client(

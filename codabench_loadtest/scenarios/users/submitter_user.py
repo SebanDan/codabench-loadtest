@@ -59,7 +59,7 @@ class SubmitterUser(BaseUser):
         self.raise_on_submission_failure(
             submission_id=submission["id"],
             name=request_name,
-            elapsed_time=(time.perf_counter() - start_time) * 1000,
+            elapsed_time=int(time.perf_counter() - start_time),
         )
         return submission
 
@@ -72,11 +72,11 @@ class SubmitterUser(BaseUser):
             None
             if submission["status"] != FAILED
             else SubmissionStatusError(
-                f"Submission {name} failed with message: {submission.get('status_details')}"
+                f"{name} failed with message: {submission.get('status_details')}"
             )
         )
         self.fire_event(
-            request_type="SUBMISSION STATUS",
+            request_type="SubmissionStatus",
             name=f"Submission {name} {status_message}",
             total_time=elapsed_time,
             response_length=0,

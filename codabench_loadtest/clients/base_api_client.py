@@ -330,7 +330,7 @@ class CodabenchClient:
     def delete_unused_datasets(self) -> None:
         self._ensure_auth()
         resp = self.session.delete(
-            f"{self.host}/api/datasets/delete_unused_datasets/",
+            f"{self.host}/api/delete_unused_datasets/",
         )
         resp.raise_for_status()
 

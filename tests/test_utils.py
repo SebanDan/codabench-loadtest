@@ -69,7 +69,7 @@ def test_rewrite_url_host_preserves_url_components(url: str) -> None:
 
     assert rewritten.scheme == original.scheme
     assert (
-        rewritten.port == None
+        rewritten.port is None
     )  # The port should be None since we didn't specify a port in the new host
     assert rewritten.hostname == "new-host"
     assert rewritten.path == original.path

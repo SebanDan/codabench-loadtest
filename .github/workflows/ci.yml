@@ -52,5 +52,5 @@ jobs:
 
       - name: Unit Tests
         run: |
-          uv run --group test coverage run --source . -m pytest tests
-          uv run --group test coverage report
+          uv run --group tests coverage run --source . -m pytest tests
+          uv run --group tests coverage report

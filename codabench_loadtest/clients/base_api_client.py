@@ -61,14 +61,9 @@ class CodabenchClient:
 
     def login(self) -> None:
         self.settings.require_auth()
-
         token = self.settings.api_token.get_secret_value()
-        if token:
-            self.session.headers["Authorization"] = f"Token {token}"
-            self._authenticated = True
-            return
-
-        token = self.get_api_token(self.settings.username, self.settings.password)
+        if not token:
+            token = self.get_api_token(self.settings.username, self.settings.password)
         self.session.headers.update({"Authorization": f"Token {token}"})
         self._authenticated = True
 
@@ -127,6 +122,7 @@ class CodabenchClient:
 
         user_id = str(resp.url.rstrip("/").split("/")[-2])
 
+        # Update the email address via the API, since the admin form doesn't expose it.
         self.patch_user(user_id=user_id, json_data={"email": email})
         return {"id": user_id}
 

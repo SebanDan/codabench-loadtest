@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING
 
 from gevent import sleep
 from locust import between, tag, task
 
 from codabench_loadtest.clients.base_api_client import FAILED
-from codabench_loadtest.clients.exceptions import LoadTestError
+from codabench_loadtest.clients.exceptions import LoadTestError, SubmissionStatusError
 from codabench_loadtest.scenarios.tasks.base_user import BaseUser
 
 if TYPE_CHECKING:
@@ -36,49 +37,55 @@ class SubmitterUser(BaseUser):
         custom_name: str = "",
         wait_for_completion: bool = True,
     ):
-        request_name = " ".join(
-            part for part in [competition.name, submission_zip.zip_name, custom_name] if part
+        request_name = f"{competition.name} {submission_zip.zip_name} {custom_name}"
+        data = self.codabench_client.upload_submission(
+            competition.id,  # type: ignore
+            zip_bytes=submission_zip.get_zip_bytes(),
+            zip_name=submission_zip.zip_name,
+            size=submission_zip.bytes_size(),
+            custom_name=request_name,
         )
-        try:
-            data = self.codabench_client.upload_submission(
-                competition.id,  # type: ignore
-                zip_bytes=submission_zip.get_zip_bytes(),
-                zip_name=submission_zip.zip_name,
-                size=submission_zip.bytes_size(),
-                custom_name=request_name,
-            )
-            submission = self.codabench_client.create_submission(
-                data["key"],
-                phase=competition.get_phase_id(),
-                name=request_name,
-            )
-            if wait_for_completion:
-                self.codabench_client.poll_until_done(
-                    self.codabench_client.get_submission, submission["id"]
-                )
-            self.raise_on_submission_failure(submission_id=submission["id"])
-            return submission
-        except LoadTestError as e:
-            self.environment.events.request.fire(
-                request_type="submission",
-                name=request_name,
-                response_time=0,
-                response_length=0,
-                exception=e,
-            )
-            raise
+        submission = self.codabench_client.create_submission(
+            data["key"],
+            phase=competition.get_phase_id(),
+            name=request_name,
+        )
+        start_time = time.perf_counter()
 
-    def raise_on_submission_failure(self, submission_id: int):
-        submission = self.codabench_client.get_submission(submission_id)
-        if submission["status"] == FAILED:
-            raise LoadTestError(
-                f"Submission {submission_id} failed with message: {submission['message']}"
+        if wait_for_completion:
+            self.codabench_client.poll_until_done(
+                self.codabench_client.get_submission, submission["id"]
             )
+        self.raise_on_submission_failure(
+            submission_id=submission["id"],
+            name=request_name,
+            elapsed_time=int(time.perf_counter() - start_time),
+        )
+        return submission
+
+    def raise_on_submission_failure(
+        self, submission_id: int, name: str, elapsed_time: float = 0
+    ):
+        submission = self.codabench_client.get_submission(submission_id)
+        status_message = "succeeded" if submission["status"] != FAILED else "failed"
+        exception = (
+            None
+            if submission["status"] != FAILED
+            else SubmissionStatusError(
+                f"{name} failed with message: {submission.get('status_details')}"
+            )
+        )
+        self.fire_event(
+            request_type="SubmissionStatus",
+            name=f"Submission {name} {status_message}",
+            total_time=elapsed_time,
+            response_length=0,
+            exception=exception,
+        )
 
     @tag("normal")
     @task
     def submit_task(self):
-
         competition_zip: CompetitionZip = (
             self.environment.competition_pool.get_random_competition()
         )

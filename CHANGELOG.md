@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.1.5 (2026-08-05)
+
+### Bug Fixes
+
+- Dataset deletion
+  ([`0476966`](https://github.com/SebanDan/codabench-loadtest/commit/04769664f01d36e5b9609a3e65537ef9aeffa820))
+
+- Submission failure detection
+  ([`d599d69`](https://github.com/SebanDan/codabench-loadtest/commit/d599d699f0552a5cf1d12d5c0407dddae91dd66a))
+
+### Documentation
+
+- Repair image
+  ([`2430e6c`](https://github.com/SebanDan/codabench-loadtest/commit/2430e6c2bd793c1b4bad2ee5b01c28fd0b7bd4be))
+
+- Repair image
+  ([`4b148de`](https://github.com/SebanDan/codabench-loadtest/commit/4b148de94343909e2b8598d6eecbcb0d131980df))
+
+
 ## v1.1.4 (2026-08-03)
 
 ### Bug Fixes

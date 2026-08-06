@@ -22,16 +22,8 @@ dev = [
     {include-group = "format"},
     {include-group = "lint"},
     {include-group = "typing"},
-    {include-group = "test"},
+    {include-group = "tests"},
     {include-group = "reports"},
-]
-
-test = [
-    "coverage>=7.14.1",
-    "pytest>=8.4.2",
-    "pytest-html>=4.1.1",
-    "pytest-mock>=3.15.1",
-    "pytest-retry>=1.7.0",
 ]
 
 format = [
@@ -49,6 +41,15 @@ typing = [
 
 reports = [
     "pandas>=2.3.0",
+]
+
+tests = [
+    "coverage>=7.14.1",
+    "pytest>=8.4.2",
+    "pytest-html>=4.1.1",
+    "pytest-mock>=3.15.1",
+    "pytest-retry>=1.7.0",
+    "requests-mock>=1.12.1",
 ]
 
 
@@ -99,7 +100,7 @@ exclude = [
 branch = true
 
 [tool.coverage.report]
-fail_under = 1
+fail_under = 35
 ignore_errors = true
 show_missing = true
 exclude_lines = [

@@ -53,7 +53,9 @@ class Settings(BaseSettings):
         return self
 
     def require_auth(self) -> None:
-        if not self.api_token.get_secret_value() and not self.username:
+        if not self.api_token.get_secret_value() and (
+            not self.username or not self.password.get_secret_value()
+        ):
             raise RuntimeError(
                 "Missing CODABENCH_API_TOKEN or CODABENCH_USERNAME/PASSWORD in .env"
             )

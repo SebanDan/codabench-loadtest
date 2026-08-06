@@ -26,7 +26,7 @@ from typing import Any, ClassVar
 
 import requests
 
-from codabench_loadtest.setup import Settings
+from codabench_loadtest.setup.config import Settings
 
 
 @dataclass

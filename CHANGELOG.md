@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.2.0 (2026-08-06)
+
+### Code Style
+
+- Failure display
+  ([`1090eae`](https://github.com/SebanDan/codabench-loadtest/commit/1090eae92746381f892d6eace8a1183f231f63f0))
+
+- Failure display
+  ([`7f23691`](https://github.com/SebanDan/codabench-loadtest/commit/7f2369160dd8d289d5efaab818839606b12d9c73))
+
+### Features
+
+- Add unit testing
+  ([`edec379`](https://github.com/SebanDan/codabench-loadtest/commit/edec379f00ee07db8b6c0aa04628c20fe09abba9))
+
+
 ## v1.1.5 (2026-08-05)
 
 ### Bug Fixes

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from codabench_loadtest.clients import CodabenchClient
 from codabench_loadtest.models import CompetitionPool, User, UserPool
-from codabench_loadtest.setup import Settings
+from codabench_loadtest.setup.config import Settings
 
 
 class EnvironmentSetup:

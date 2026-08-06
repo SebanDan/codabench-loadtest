@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from locust_plugins.users.playwright import PageWithRetry, PlaywrightUser
 
 if TYPE_CHECKING:
-    from codabench_loadtest.setup import Settings
+    from codabench_loadtest.setup.config import Settings
 
 
 class PlaywrightBaseUser(PlaywrightUser):

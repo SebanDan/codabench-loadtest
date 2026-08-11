@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.1 (2026-08-11)
+
+### Bug Fixes
+
+- User colision
+  ([`738b4c4`](https://github.com/SebanDan/codabench-loadtest/commit/738b4c40cdb0bdd7b5fb80ea6c58c400d7da895b))
+
+
 ## v1.2.0 (2026-08-06)
 
 ### Code Style

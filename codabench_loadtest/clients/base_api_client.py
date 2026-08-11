@@ -4,11 +4,13 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from gevent import sleep
 from pydantic import SecretStr
 from requests import Session
 
 if TYPE_CHECKING:
     from codabench_loadtest.setup.config import Settings
+
 from codabench_loadtest.clients.utils import rewrite_url_host
 
 # Submission statuses as returned by the API (Title Case).
@@ -403,4 +405,4 @@ class CodabenchClient:
                     f"Status {status_id} still '{state}' " f"after {timeout}s"
                 )
 
-            time.sleep(interval)
+            sleep(interval)

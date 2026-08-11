@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 import random
+import uuid
 
 from faker import Faker
 from pydantic import BaseModel, Field
 
 
 class User(BaseModel):
-    username: str = Field(default_factory=lambda: Faker().user_name())
+    username: str = Field(
+        default_factory=lambda: f"{Faker().user_name()}{uuid.uuid4().hex[:8]}"
+    )
     password: str = Field(default_factory=lambda: Faker().password())
-    email: str = Field(default_factory=lambda: Faker().email())
+    email: str = Field(
+        default_factory=lambda: f"{Faker().user_name()}{uuid.uuid4().hex[:8]}@{Faker().free_email_domain()}"
+    )
     id: str | None = Field(default=None, description="User ID assigned by the server")
 
 

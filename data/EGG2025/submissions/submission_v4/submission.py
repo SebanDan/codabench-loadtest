@@ -1,6 +1,5 @@
 from braindecode.models import EEGNetv4
 
-
 class Submission:
     def __init__(self, SFREQ, DEVICE):
         self.sfreq = SFREQ
@@ -19,7 +18,6 @@ class Submission:
         )
         # model_challenge2.load_state_dict(torch.load("weights_challenge_2.pt", weights_only=True))
         return model_challenge2
-
 
 # ##########################################################################
 # # How Submission class will be used

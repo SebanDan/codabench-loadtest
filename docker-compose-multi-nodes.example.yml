@@ -1,0 +1,23 @@
+services:
+
+  codabench-loadtest:
+    build: .
+    container_name: codabench-loadtest-master
+    network_mode: "host"
+    volumes:
+      - ./locust.master.conf:/app/locust.conf
+      - ./data:/app/data
+      - ./.github/env:/app/.github/env
+      - ./reports:/app/reports
+    command: locust -f codabench_loadtest/locustfile.py --master
+
+  codabench-loadtest-worker:
+    build: .
+    container_name: codabench-loadtest-worker
+    network_mode: "host"
+    volumes:
+      - ./locust.worker.conf:/app/locust.conf
+      - ./data:/app/data
+      - ./.github/env:/app/.github/env
+      - ./reports:/app/reports
+    command: locust -f codabench_loadtest/locustfile.py --worker

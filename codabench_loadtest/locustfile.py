@@ -21,9 +21,8 @@ def _(parser):
     parser.add_argument(
         "--env",
         type=str,
-        default="local",
-        choices=["local", "prod"],
-        help="Environment file name to use for the load test (local or prod).",
+        default="",
+        help="Environment file name to use for the load test.",
     )
     parser.add_argument(
         "--competitions",

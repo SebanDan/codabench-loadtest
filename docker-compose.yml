@@ -1,0 +1,17 @@
+services:
+
+  codabench-loadtest:
+    build: .
+    container_name: codabench-loadtest
+    network_mode: "host"
+    # If not using host networking, uncomment the following lines to expose the necessary ports for Locust:
+    # ports:
+    #   - "8089:8089"
+    #   - "5557:5557"
+    #   - "5558:5558"
+    volumes:
+      - ./locust.conf:/app/locust.conf
+      - ./data:/app/data
+      - ./.github/env:/app/.github/env
+      - ./reports:/app/reports
+    command: locust -f codabench_loadtest/locustfile.py --env local

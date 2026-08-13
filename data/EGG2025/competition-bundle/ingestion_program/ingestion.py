@@ -46,7 +46,7 @@ sys.path.append(str(submission_dir))
 
 
 SFREQ = 100
-BATCH_SIZE = 512
+BATCH_SIZE = 64
 EPOCH_LEN_S = 2.0
 
 # Use GPU if available
@@ -148,9 +148,7 @@ if __name__ == "__main__":
         sampler=SequentialSampler(single_windows),
         shuffle=False,
         drop_last=False,
-        num_workers=8,
         pin_memory=True,
-        persistent_workers=True
     )
 
     print("Evaluate model", file=stderr)
@@ -239,12 +237,10 @@ if __name__ == "__main__":
     test_loader_ch2 = DataLoader(
         windows_ds,
         batch_size=BATCH_SIZE,
-        num_workers=8,
         sampler=SequentialSampler(windows_ds),
         shuffle=False,
         drop_last=False,
         pin_memory=True,
-        persistent_workers=True
     )
 
     print("Evaluate model", file=stderr)

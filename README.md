@@ -76,6 +76,25 @@ uv run locut --config-users my_user_config.json
 uv run locust SubmitterUser
 ```
 
+### Docker installation (recommended)
+
+This project provides a Dockerfile and a docker-compose.yml file that can be used to deploy the project on any platform.
+To proceed, clone the repository and build the image:
+
+```bash
+docker compose build --no-cache
+```
+
+When you are ready run the container with the provided configuration.
+
+***Note: The container will directly execute locust scenarios based on you configuration, so be sure to setup your environment files accordingly.***
+
+```bash
+docker compose up -d
+```
+
+This installation mode supports the `master` and `worker` capabilities from locust. The `docker-compose-multi-nodes.example.yml` provides an example to setup this properly.
+
 ### Environment variables & locust configuration
 
 This tool can be configured through two configuration file.

@@ -46,7 +46,7 @@ sys.path.append(str(submission_dir))
 
 
 SFREQ = 100
-BATCH_SIZE = 64
+BATCH_SIZE = 512
 EPOCH_LEN_S = 2.0
 
 # Use GPU if available
@@ -253,12 +253,12 @@ if __name__ == "__main__":
 
             # Forward pass
             y_pred = model_2.forward(X)
-            
-            y_preds.append(y_pred.reshape(-1).cpu().numpy())
-            y_trues.append(y.reshape(-1).cpu().numpy())
+            y_preds.append(y_pred.reshape(-1))
+            y_trues.append(y.reshape(-1))
 
-    arr2_preds = np.concatenate(y_preds)
-    arr2_trues = np.concatenate(y_trues)
+    # UN SEUL rapatriement global vers le CPU à la toute fin
+    arr2_preds = torch.cat(y_preds).cpu().numpy()
+    arr2_trues = torch.cat(y_trues).cpu().numpy()
 
     print("Free memory", file=stderr)
     del model_2

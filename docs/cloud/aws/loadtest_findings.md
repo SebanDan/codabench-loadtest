@@ -81,7 +81,7 @@ services:
               capabilities: [gpu]
 ```
 
-Also, we optimised the competition `ingestion_program` by replacing the `iterrows` statements by pandas vectorised computation.
+***Note: At this point the bottleneck here is the CPU usage more that the GPU. So, we optimised the competition `ingestion_program` by replacing the `iterrows` statements by pandas vectorised computation.***
 
 ### Codabench Database: Postgres maximum connection limit
 

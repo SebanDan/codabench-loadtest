@@ -20,7 +20,14 @@ competitions = ["EGG2025"]
 
 ## Findings
 
-Overall the platform seems to have the ability to sustain the load. However, our codabench platform configuration might not be optimal resulting in submissions taking a lot of time to be evaluated (~10-20min per submission). We also observed so failure that we will address here.
+Overall the platform seems to have the ability to sustain the load. However, our codabench platform configuration might not be optimal resulting in submissions taking a lot of time to be evaluated (~10-20min per submission) depending on the queue. We also observed some failure that we will address here.
+
+During the load testing we used the following submission bundle types:
+
+- Classical bundle: A bundle that fit & predict the model as expected 
+- Heavy CPU load bundle: Apply the classical bundle computation and add the compute of PI to the 10_000_000 digits.
+
+At the end of the several load-testing runs we observed a compute time of ~5min for the classical bundle.
 
 ### CPU / GPU Usage
 

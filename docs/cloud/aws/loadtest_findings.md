@@ -87,7 +87,7 @@ services:
 
 During the run we observed the following error:
 
-`connection to server at "db" (x.x.x.xz), port 5432 failed: FATAL:  sorry, too many clients already`
+`connection to server at "db" (x.x.x.x), port 5432 failed: FATAL:  sorry, too many clients already`
 
 Resulting in an `Error 500` page displayed on the codabench website.
 

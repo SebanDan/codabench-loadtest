@@ -1,0 +1,23 @@
+services:
+
+  codabench-loadtest:
+    build: .
+    container_name: codabench-loadtest-master
+    network_mode: "host"
+    volumes:
+      - ./locust.master.conf:/app/locust.conf # mount a different locust.conf for the master
+      - ./data:/app/data
+      - ./.github/env:/app/.github/env
+      - ./reports:/app/reports
+    command: locust -f codabench_loadtest/locustfile.py --master
+
+  codabench-loadtest-worker:
+    build: .
+    container_name: codabench-loadtest-worker
+    network_mode: "host"
+    volumes:
+      - ./locust.worker.conf:/app/locust.conf # mount a different locust.conf for the worker
+      - ./data:/app/data
+      - ./.github/env:/app/.github/env # This can be adapted to mount a different env file for the worker if needed
+      - ./reports:/app/reports
+    command: locust -f codabench_loadtest/locustfile.py --worker # provide a --worker flag or indicates directly in the locust.conf

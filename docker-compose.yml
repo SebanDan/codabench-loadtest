@@ -14,4 +14,4 @@ services:
       - ./data:/app/data
       - ./.github/env:/app/.github/env
       - ./reports:/app/reports
-    command: locust -f codabench_loadtest/locustfile.py --env local
+    command: locust -f codabench_loadtest/locustfile.py

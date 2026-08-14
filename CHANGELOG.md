@@ -2,6 +2,26 @@
 
 <!-- version list -->
 
+## v1.3.1 (2026-08-14)
+
+### Documentation
+
+- Add html
+  ([`6ecc85d`](https://github.com/SebanDan/codabench-loadtest/commit/6ecc85d730ed928e30a550cb3220b275d048af5f))
+
+- Add html file
+  ([`6694254`](https://github.com/SebanDan/codabench-loadtest/commit/66942541ef2ad7f39d642c9e698486ab00f738c2))
+
+- Findings
+  ([`8afbe50`](https://github.com/SebanDan/codabench-loadtest/commit/8afbe509dd4ea04d87f411adad01b87355d97834))
+
+- Findings
+  ([`f332f02`](https://github.com/SebanDan/codabench-loadtest/commit/f332f022f51f8753f25a69ba7f3b7f48b872d29d))
+
+
+## v1.3.0 (2026-08-13)
+
+
 ## v1.2.2 (2026-08-11)
 
 

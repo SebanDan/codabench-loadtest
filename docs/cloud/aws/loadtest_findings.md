@@ -68,7 +68,7 @@ services:
               capabilities: [gpu]
 ```
 
-Also, we optimised the competition `ingestion_program` by replacing the `iterrows` statements by pandas vectorised compute.
+Also, we optimised the competition `ingestion_program` by replacing the `iterrows` statements by pandas vectorised computation.
 
 ### Codabench Database: Postgres maximum connection limit
 
@@ -86,7 +86,7 @@ In order to fix this issue, we increased the value of `max_connections` in the p
 
 ### Timeout
 
-During the execution of long running submission that requires heavy CPU compute (like the the compute of PI), we observed several timeout from the worker. Raising the follow error message:
+During the execution of long running submission that requires heavy CPU compute (here, the compute of PI), we observed several timeout from the worker. Raising the follow error message:
 
 ```bash
 Soft time limit (1260s) exceeded for compute_worker_run[f2e311a9-d397-4a67-8b3d-8e11f247dbac]

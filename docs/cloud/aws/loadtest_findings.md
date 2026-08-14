@@ -4,11 +4,11 @@ parent: Deploying on the cloud
 nav_order: 4
 ---
 
-In this section we will detail the findings of a real load-test. This test was conducted on our own codabench platform deployed with the infrastructure detail on the ![Deploy codabench on AWS]({{ '/cloud/aws/codabench.md' | relative_url }}) section.
+In this section we will detail the findings of a real load-test. This test was conducted on our own codabench platform deployed with the infrastructure detail on the [Deploy codabench on AWS]({{ site.baseurl }}/cloud/aws/codabench') section.
 
 It used the following locust configuration:
 
-```
+```.env
 headless = true
 users = 300
 spawn-rate = 10
@@ -35,7 +35,7 @@ At the end of the several load-testing runs we observed a compute time of ~5min 
 During the test, the CPU usage was at 100% for each container create by the worker while only one GPU was used at around 40%.
 To mitigate this issue, be sure to explicitly set the number of cpu available in the `docker-compose.yml` worker file and indicate the GPU available for each worker.
 
-Voici la configuration docker utilisée positionnant 2 worker:
+Here is the docker configuration used with 2 workers:
 
 ```yml
 x-worker-base: &worker-base
@@ -115,3 +115,33 @@ To mitigate this issue, one should extend the soft time limit or allow more work
 During the loadtesting, the competition we were testing could not be reach from the front page. Displaying an `Error 500` message when clicked. This was caused by a bad link with a mission `/` at the end of the URL.
 
 When reached from the search field, the link was correct and the competition could be accessed.
+
+### Reports
+
+Here you can consult the reports gathered from several loadtest sessions.
+
+***Note: As the locust runs stop after 30 minutes, all the submissions are not fully monitored. However, the submissions evaluated after the end of the locust process keep the same behaviour. (e.g what was failing before is still failing and so on)***
+
+## Rapport v1 — 250 users, 10 spawn-rate, 30min
+
+<iframe src="{{ site.baseurl }}/cloud/aws/execution_results/report-v1-250-10-30.html" 
+        width="100%" height="800px" frameborder="0">
+</iframe>
+
+## Rapport v1 — 250 users, 10 spawn-rate, 30min
+
+<iframe src="{{ site.baseurl }}/cloud/aws/execution_results/report-v2-250-10-30.html" 
+        width="100%" height="800px" frameborder="0">
+</iframe>
+
+## Rapport: 300 users, 10 spawn-rate, 30min
+
+<iframe src="{{ site.baseurl }}/cloud/aws/execution_results/report-v1-300-10-30.html" 
+        width="100%" height="800px" frameborder="0">
+</iframe>
+
+## Rapport: 500 users, 10 spawn-rate, 30min
+
+<iframe src="{{ site.baseurl }}/cloud/aws/execution_results/report-v1-500-10-30.html" 
+        width="100%" height="800px" frameborder="0">
+</iframe>

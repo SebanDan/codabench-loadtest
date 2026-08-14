@@ -68,6 +68,8 @@ services:
               capabilities: [gpu]
 ```
 
+Also, we optimised the competition `ingestion_program` by replacing the `iterrows` statements by pandas vectorised compute.
+
 ### Codabench Database: Postgres maximum connection limit
 
 During the run we observed the following error:
@@ -82,10 +84,19 @@ In order to fix this issue, we increased the value of `max_connections` in the p
 
 ### Submission Failed
 
+### Timeout
+
+During the execution of long running submission that requires heavy CPU compute (like the the compute of PI), we observed several timeout from the worker. Raising the follow error message:
+
+```bash
 Soft time limit (1260s) exceeded for compute_worker_run[f2e311a9-d397-4a67-8b3d-8e11f247dbac]
 2026-08-14 05:13:16.289 | ERROR    | compute_worker:_run_container_engine_cmd:980 - SoftTimeLimitExceeded()
+```
+
 
 ### Codabench Front: Competition missing
+
+(Might not be related to the loudest but only the platform settings)
 
 During the loadtesting, the competition we were testing could not be reach from the front page. Displaying an `Error 500` message when clicked. This was caused by a bad link with a mission `/` at the end of the URL.
 

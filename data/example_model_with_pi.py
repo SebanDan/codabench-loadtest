@@ -29,8 +29,11 @@ class Model:
             f"[*] Training RandomForestClassifier on {X_train_flat.shape[0]} samples..."
         )
         self.clf.fit(X_train_flat, y_train)
-        self.compute_pi(precision=10)
         print("[+] Training complete.")
+
+        print("Computing pi to simulate a long computation for load testing...")
+        self.compute_pi(precision=10)
+        print("[+] Pi computation complete.")
 
     def predict(self, X_test):
         """
@@ -44,7 +47,9 @@ class Model:
         """
         # Flatten images from (M, 28, 28) to (M, 784) for sklearn
         X_test_flat = X_test.reshape(X_test.shape[0], -1)
+        print("Computing pi to simulate a long computation for load testing...")
         self.compute_pi(precision=10)  # Simulate a long computation for load testing
+        print("[+] Pi computation complete.")
         print(f"[*] Predicting labels for {X_test_flat.shape[0]} test samples...")
         return self.clf.predict(X_test_flat)
 

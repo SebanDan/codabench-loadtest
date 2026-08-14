@@ -4,7 +4,7 @@ parent: Deploying on the cloud
 nav_order: 4
 ---
 
-In this section we will detail the findings of a real load-test. This test was conducted on our own codabench platform deployed with the infrastructure detail on the [Deploy codabench on AWS]({{ site.baseurl }}/cloud/aws/codabench') section.
+In this section we will detail the findings of a real load-test. This test was conducted on our own codabench platform deployed with the infrastructure detail on the [Deploy codabench on AWS]({{ site.baseurl }}/cloud/aws/codabench) section.
 
 It used the following locust configuration:
 

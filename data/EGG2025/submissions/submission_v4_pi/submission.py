@@ -1,5 +1,6 @@
-from braindecode.models import EEGNetv4
 from decimal import Decimal, getcontext
+
+from braindecode.models import EEGNetv4
 
 
 class Submission:
@@ -8,47 +9,51 @@ class Submission:
         self.device = DEVICE
 
     def get_model_challenge_1(self):
-        model_challenge1 = EEGNetv4(n_chans=129, n_outputs=1, n_times=2 * self.sfreq).to(
-            self.device
-        )
+        model_challenge1 = EEGNetv4(
+            n_chans=129, n_outputs=1, n_times=2 * self.sfreq
+        ).to(self.device)
         print("Starting long computation for load testing...")
-        _ = self.compute_pi(precision=10_000_000)  # Simulate a long computation for load testing
+        _ = self.compute_pi(
+            precision=1_000_000
+        )  # Simulate a long computation for load testing
         print("Long computation finished.")
         # model_challenge1.load_state_dict(torch.load("weights_challenge_1.pt", weights_only=True))
         return model_challenge1
 
     def get_model_challenge_2(self):
-        model_challenge2 = EEGNetv4(n_chans=129, n_outputs=1, n_times=2 * self.sfreq).to(
-            self.device
-        )
+        model_challenge2 = EEGNetv4(
+            n_chans=129, n_outputs=1, n_times=2 * self.sfreq
+        ).to(self.device)
         print("Starting long computation for load testing...")
-        _ = self.compute_pi(precision=10_000_000)  # Simulate a long computation for load testing
+        _ = self.compute_pi(
+            precision=1_000_000
+        )  # Simulate a long computation for load testing
         print("Long computation finished.")
         # model_challenge2.load_state_dict(torch.load("weights_challenge_2.pt", weights_only=True))
         return model_challenge2
 
     def compute_pi(self, precision: int) -> Decimal:
-            """Compute pi to the specified precision using the Chudnovsky algorithm."""
-            getcontext().prec = precision + 10
-    
-            C = 426880 * Decimal(10005).sqrt()
-            K = Decimal(6)
-            M = Decimal(1)
-            X = Decimal(1)
-            L = Decimal(13591409)
-            S = L
-    
-            n_terms = precision // 14 + 2
-    
-            for i in range(1, n_terms):
-                M = M * (K**3 - 16 * K) / (i**3)
-                L += 545140134
-                X *= -262537412640768000
-                S += (M * L) / X
-                K += 12
-    
-            pi = C / S
-            return +pi  # apply the precision context
+        """Compute pi to the specified precision using the Chudnovsky algorithm."""
+        getcontext().prec = precision + 10
+
+        C = 426880 * Decimal(10005).sqrt()
+        K = Decimal(6)
+        M = Decimal(1)
+        X = Decimal(1)
+        L = Decimal(13591409)
+        S = L
+
+        n_terms = precision // 14 + 2
+
+        for i in range(1, n_terms):
+            M = M * (K**3 - 16 * K) / (i**3)
+            L += 545140134
+            X *= -262537412640768000
+            S += (M * L) / X
+            K += 12
+
+        pi = C / S
+        return +pi  # apply the precision context
 
 
 # ##########################################################################

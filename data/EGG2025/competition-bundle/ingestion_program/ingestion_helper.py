@@ -60,60 +60,63 @@ def build_trial_table(events_df: pd.DataFrame) -> pd.DataFrame:
     trials["next_onset"] = trials["onset"].shift(-1)
     trials = trials.dropna(subset=["next_onset"]).reset_index(drop=True)
 
-    rows = []
-    for _, tr in trials.iterrows():
-        start = float(tr["onset"])
-        end = float(tr["next_onset"])
+    # Extract sorted arrays for efficient O(log n) searching
+    stim_onsets_arr = stimuli["onset"].values
+    resp_onsets_arr = responses["onset"].values
+    resp_types_arr = responses["value"].values
+    resp_feedback_arr = responses["feedback"].values
+    trial_onsets_arr = trials["onset"].values
+    trial_ends_arr = trials["next_onset"].values
 
-        stim_block = stimuli[(stimuli["onset"] >= start) & (stimuli["onset"] < end)]
-        stim_onset = np.nan if stim_block.empty else float(stim_block.iloc[0]["onset"])
+    # Stimuli onsets: searchsorted O(log n) per trial
+    stim_onsets = np.full(len(trials), np.nan)
+    for i, (start, end) in enumerate(zip(trial_onsets_arr, trial_ends_arr)):
+        j = np.searchsorted(stim_onsets_arr, start, side="left")
+        if j < len(stim_onsets_arr) and stim_onsets_arr[j] < end:
+            stim_onsets[i] = stim_onsets_arr[j]
 
-        if not np.isnan(stim_onset):
-            resp_block = responses[
-                (responses["onset"] >= stim_onset) & (responses["onset"] < end)
-            ]
-        else:
-            resp_block = responses[
-                (responses["onset"] >= start) & (responses["onset"] < end)
-            ]
+    # Responses: searchsorted with conditional logic
+    resp_onsets = np.full(len(trials), np.nan)
+    resp_types = np.full(len(trials), None, dtype=object)
+    resp_feedback = np.full(len(trials), None, dtype=object)
+    
+    for i, (start, end, stim_t) in enumerate(
+        zip(trial_onsets_arr, trial_ends_arr, stim_onsets)
+    ):
+        search_start = stim_t if not np.isnan(stim_t) else start
+        j = np.searchsorted(resp_onsets_arr, search_start, side="left")
+        if j < len(resp_onsets_arr) and resp_onsets_arr[j] < end:
+            resp_onsets[i] = resp_onsets_arr[j]
+            resp_types[i] = resp_types_arr[j]
+            resp_feedback[i] = resp_feedback_arr[j]
 
-        if resp_block.empty:
-            resp_onset = np.nan
-            resp_type = None
-            feedback = None
-        else:
-            resp_onset = float(resp_block.iloc[0]["onset"])
-            resp_type = resp_block.iloc[0]["value"]
-            feedback = resp_block.iloc[0]["feedback"]
+    # Compute RTs vectorized with np.where
+    rt_from_stim = np.where(
+        np.isnan(stim_onsets) | np.isnan(resp_onsets),
+        np.nan,
+        resp_onsets - stim_onsets,
+    )
+    rt_from_trial = np.where(
+        np.isnan(resp_onsets), np.nan, resp_onsets - trials["onset"].values
+    )
 
-        rt_from_stim = (
-            (resp_onset - stim_onset)
-            if (not np.isnan(stim_onset) and not np.isnan(resp_onset))
-            else np.nan
-        )
-        rt_from_trial = (resp_onset - start) if not np.isnan(resp_onset) else np.nan
+    # Map feedback to correct (vectorized boolean indexing)
+    correct = np.full(len(trials), None, dtype=object)
+    smiley = resp_feedback == "smiley_face"
+    sad = resp_feedback == "sad_face"
+    correct[smiley] = True
+    correct[sad] = False
 
-        correct = None
-        if isinstance(feedback, str):
-            if feedback == "smiley_face":
-                correct = True
-            elif feedback == "sad_face":
-                correct = False
-
-        rows.append(
-            {
-                "trial_start_onset": start,
-                "trial_stop_onset": end,
-                "stimulus_onset": stim_onset,
-                "response_onset": resp_onset,
-                "rt_from_stimulus": rt_from_stim,
-                "rt_from_trialstart": rt_from_trial,
-                "response_type": resp_type,
-                "correct": correct,
-            }
-        )
-
-    return pd.DataFrame(rows)
+    return pd.DataFrame({
+        "trial_start_onset": trial_onsets_arr,
+        "trial_stop_onset": trial_ends_arr,
+        "stimulus_onset": stim_onsets,
+        "response_onset": resp_onsets,
+        "rt_from_stimulus": rt_from_stim,
+        "rt_from_trialstart": rt_from_trial,
+        "response_type": resp_types,
+        "correct": correct,
+    })
 
 
 def _to_float_or_none(x):
@@ -121,16 +124,7 @@ def _to_float_or_none(x):
 
 
 def _to_int_or_none(x):
-    if pd.isna(x):
-        return None
-    if isinstance(x, (bool, np.bool_)):
-        return int(bool(x))
-    if isinstance(x, (int, np.integer)):
-        return int(x)
-    try:
-        return int(x)
-    except Exception:
-        return None
+    return None if pd.isna(x) else int(x)
 
 
 def _to_str_or_none(x):
@@ -166,28 +160,33 @@ def annotate_trials_with_target(
 
     if target_field not in trials.columns:
         raise KeyError(f"{target_field} not in computed trial table.")
-    targets = trials[target_field].astype(float)
 
     onsets = trials["trial_start_onset"].to_numpy(float)
     durations = np.full(len(trials), float(epoch_length), dtype=float)
     descs = ["contrast_trial_start"] * len(trials)
 
-    extras = []
-    for i, v in enumerate(targets):
-        row = trials.iloc[i]
+    # Extract columns as arrays for vectorized access
+    target_vals = trials[target_field].values
+    rt_stim_vals = trials["rt_from_stimulus"].values
+    rt_trial_vals = trials["rt_from_trialstart"].values
+    stim_onset_vals = trials["stimulus_onset"].values
+    resp_onset_vals = trials["response_onset"].values
+    correct_vals = trials["correct"].values
+    resp_type_vals = trials["response_type"].values
 
-        extras.append(
-            {
-                "target": _to_float_or_none(v),
-                "rt_from_stimulus": _to_float_or_none(row["rt_from_stimulus"]),
-                "rt_from_trialstart": _to_float_or_none(row["rt_from_trialstart"]),
-                "stimulus_onset": _to_float_or_none(row["stimulus_onset"]),
-                "response_onset": _to_float_or_none(row["response_onset"]),
-                "correct": _to_int_or_none(row["correct"]),
-                "response_type": _to_str_or_none(row["response_type"]),
-            }
-        )
-
+    # Build extras with list comprehension (faster than apply)
+    extras = [
+        {
+            "target": _to_float_or_none(target_vals[i]),
+            "rt_from_stimulus": _to_float_or_none(rt_stim_vals[i]),
+            "rt_from_trialstart": _to_float_or_none(rt_trial_vals[i]),
+            "stimulus_onset": _to_float_or_none(stim_onset_vals[i]),
+            "response_onset": _to_float_or_none(resp_onset_vals[i]),
+            "correct": _to_int_or_none(correct_vals[i]),
+            "response_type": _to_str_or_none(resp_type_vals[i]),
+        }
+        for i in range(len(trials))
+    ]
     new_ann = mne.Annotations(
         onset=onsets,
         duration=durations,

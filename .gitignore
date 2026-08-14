@@ -79,7 +79,6 @@ download/
 locust.conf
 *.csv
 *.env
-*.html
 *locust.conf
 
 infra/*
@@ -90,3 +89,4 @@ infra/codabench
 .DS_Store
 .terraform.lock.hcl
 *.png
+reports/*.html

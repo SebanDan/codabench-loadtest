@@ -39,7 +39,7 @@ x-worker-base: &worker-base
     options:
       max-size: 50m
       max-file: 3
-  shm_size: '1024gb'
+  shm_size: '128gb'
   cpus: "96.0"
 
 services:
@@ -79,6 +79,11 @@ Resulting in an `Error 500` page displayed on the codabench website.
 In order to fix this issue, we increased the value of `max_connections` in the postgres configuration file on the codabench instance.
 
 ***Note: Depending on the number of concurrent user, this issue might still appear.***
+
+### Submission Failed
+
+Soft time limit (1260s) exceeded for compute_worker_run[f2e311a9-d397-4a67-8b3d-8e11f247dbac]
+2026-08-14 05:13:16.289 | ERROR    | compute_worker:_run_container_engine_cmd:980 - SoftTimeLimitExceeded()
 
 ### Codabench Front: Competition missing
 

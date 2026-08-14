@@ -1,5 +1,5 @@
 ---
-title: What an actual load test can finds out?
+title: Our findinds on the platform
 parent: Deploying on the cloud
 nav_order: 4
 ---

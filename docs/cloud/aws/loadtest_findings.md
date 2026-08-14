@@ -1,5 +1,5 @@
 ---
-title: Our findinds on the platform
+title: Our findings on the platform
 parent: Deploying on the cloud
 nav_order: 4
 ---

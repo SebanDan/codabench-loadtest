@@ -17,6 +17,7 @@ tags = ["normal", "clumsy"]
 competitions = ["EGG2025"]
 ```
 
+**We used a total of 8 worker containers on the same AWS EC2 p4d.24xlarge. Which means we were able to evaluate 8 submission at the same time.**
 
 ## Findings
 
@@ -104,6 +105,8 @@ During the execution of long running submission that requires heavy CPU compute 
 Soft time limit (1260s) exceeded for compute_worker_run[xxxx-xxxx-xxxx-xxxx]
 2026-08-14 05:13:16.289 | ERROR    | compute_worker:_run_container_engine_cmd:980 - SoftTimeLimitExceeded()
 ```
+
+To mitigate this issue, one should extend the soft time limit or allow more worker concurrency.
 
 ### Codabench Front: Competition missing
 

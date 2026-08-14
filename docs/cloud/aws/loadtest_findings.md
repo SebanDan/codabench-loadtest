@@ -8,14 +8,19 @@ In this section we will detail the findings of a real load-test. This test was c
 
 It used the following locust configuration:
 
+```
 headless = true
 users = 300
 spawn-rate = 10
 run-time = 30m
 tags = ["normal", "clumsy"]
 competitions = ["EGG2025"]
+```
+
 
 ## Findings
+
+Overall the platform seems to have the ability to sustain the load. However, our codabench platform configuration might not be optimal resulting in submissions taking a lot of time to be evaluated (~10-20min per submission). We also observed so failure that we will address here.
 
 ### CPU / GPU Usage
 
@@ -89,10 +94,9 @@ In order to fix this issue, we increased the value of `max_connections` in the p
 During the execution of long running submission that requires heavy CPU compute (here, the compute of PI), we observed several timeout from the worker. Raising the follow error message:
 
 ```bash
-Soft time limit (1260s) exceeded for compute_worker_run[f2e311a9-d397-4a67-8b3d-8e11f247dbac]
+Soft time limit (1260s) exceeded for compute_worker_run[xxxx-xxxx-xxxx-xxxx]
 2026-08-14 05:13:16.289 | ERROR    | compute_worker:_run_container_engine_cmd:980 - SoftTimeLimitExceeded()
 ```
-
 
 ### Codabench Front: Competition missing
 

@@ -8,7 +8,7 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class SubmissionZip(BaseModel):

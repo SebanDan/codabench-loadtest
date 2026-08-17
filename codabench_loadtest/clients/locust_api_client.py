@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, BinaryIO, Mapping
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Mapping
 
 from requests import Session
 
@@ -43,7 +44,7 @@ class CodabenchLocustClient(CodabenchClient):
     def upload_submission(
         self,
         competition_id: int,
-        zip_bytes: bytes | BinaryIO,
+        zip_path: Path,
         zip_name: str,
         size: int,
         custom_name: str = "",
@@ -72,12 +73,16 @@ class CodabenchLocustClient(CodabenchClient):
         key = data["key"]
         sassy_url = rewrite_url_host(data["sassy_url"], self.settings.minio_endpoint)
 
-        with Session().put(
-            sassy_url,
-            data=zip_bytes,
-            headers={"Content-Type": "application/zip"},
-        ) as response:
-            response.raise_for_status()
+        with open(zip_path, "rb") as zip_bytes:
+            with Session().put(
+                sassy_url,
+                data=zip_bytes,
+                headers={
+                    "Content-Type": "application/zip",
+                    "Content-Length": str(size),
+                },
+            ) as response:
+                response.raise_for_status()
 
         with self.session.put(
             f"/api/datasets/completed/{key}/",

@@ -40,7 +40,7 @@ class SubmitterUser(BaseUser):
         request_name = f"{competition.name} {submission_zip.zip_name} {custom_name}"
         data = self.codabench_client.upload_submission(
             competition.id,  # type: ignore
-            zip_bytes=submission_zip.get_zip_bytes(),
+            zip_path=submission_zip.zip_path,
             zip_name=submission_zip.zip_name,
             size=submission_zip.bytes_size(),
             custom_name=request_name,
@@ -118,20 +118,3 @@ class SubmitterUser(BaseUser):
             )
         except LoadTestError as e:
             print(f"Error during clumsy submission: {e}")
-
-    @tag("heavy")
-    @task
-    def heavy_submit_task(self):
-        competition_zip: CompetitionZip = (
-            self.environment.competition_pool.get_random_competition()
-        )
-        submission_zip: SubmissionZip = competition_zip.get_random_submission_zip()
-        submission_zip.generate_heavy_space(extra_size_mb=1024, chunk_mb=50)
-        try:
-            self._submit(
-                competition=competition_zip,
-                submission_zip=submission_zip,
-                custom_name="+heavy_submit",
-            )
-        except LoadTestError as e:
-            print(f"Error during heavy submission: {e}")

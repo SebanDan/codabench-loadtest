@@ -107,6 +107,7 @@ It supports the usual locust configuration variables documented on the [locust d
 | --- | --- | --- |
 | `env` | Name of the environment file to load at runtime (e.g. `local`, `prod`) | `local` |
 | `competitions` | Space-separated list of competition names to test, matching the `<COMPETITION_NAME>` folders under `data/`. Omit to run all competitions found. | *(all)* |
+| `large-file-size` | Size of large files to generate in bytes. If not provided it will not generate any large files. | 0 |
 
 **2. `<environment>`.env:**
 
@@ -177,13 +178,18 @@ This user is used to create different kind of submission on the platform by runn
 
 ***Note***: *All the submission task select randomly a submission bundle available in the submission pool allowing all the task to submit classical or heavy compute submission.*
 
+In order to send submission with large files, use the `--large-file-size` option in the `locust.conf`. This option will generate a large file of the provided size for each submission bundle. For instance, to generate a file of 1Go run the following command:
+
+```bash
+uv run locust SubmitterUser --large-file-size 1024
+```
+
 - **submit_task**: This task select a submission bundle available in the submission pool and submit it to the competition. It can be filtered by using the `normal` tag.
 - **clumsy_submit_task**: This task select a submission bundle, submit it, cancel it, lauch a new submission and re-run the previously submitted bundle. It can be filtered by using the `clumsy` tag.
-- **heavy_submit_task**: This task select a submission bundle and expand it content by 1Go before submitting it. It can be filtered by using the `heavy` tag.
 
 3. The UIUser
 
-This user is used to evaluate the codabench UI using `Playwright` and ensure the front is still responding. It can perfom submission to the competition through the UI, but as the `Playwright Browsers` are heavy it is not suited for heavy loadtesting.
+This user is used to evaluate the codabench UI using `Playwright` and ensure the front is still responding. It can perfom submission to the competition through the UI, but as the `Playwright Browsers` are consuming a lot of resources, it is not suited for heavy loadtesting.
 
 ### Reports
 

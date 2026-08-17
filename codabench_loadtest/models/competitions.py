@@ -73,6 +73,10 @@ class CompetitionZip(BaseModel):
             raise ValueError(f"Invalid competition ZIP: {self.bundle_path}") from error
         return self
 
+    def generate_large_submissions(self, large_file_size: int) -> None:
+        """Generate large temporary files for each submission in the competition."""
+        self.submission_pool.generate_large_submissions(large_file_size=large_file_size)
+
 
 class CompetitionPool(BaseModel):
     competitions: list[CompetitionZip]
@@ -89,6 +93,11 @@ class CompetitionPool(BaseModel):
                 and (not competition_filter or d.name in competition_filter)
             ]
         )
+
+    def generate_large_submissions(self, large_file_size: int) -> None:
+        """Generate large temporary files for each submission in the pool."""
+        for competition in self.competitions:
+            competition.generate_large_submissions(large_file_size=large_file_size)
 
     def get_random_competition(self) -> CompetitionZip:
         if not self.competitions:

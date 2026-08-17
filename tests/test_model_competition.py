@@ -1,3 +1,5 @@
+import zipfile
+
 import pytest
 
 from codabench_loadtest.models import CompetitionPool, CompetitionZip
@@ -100,3 +102,23 @@ def test_competition_zip_from_dir_raises_when_submissions_dir_missing(
 def test_competition_zip_from_dir_raises_when_invalid_zip(competition_with_invalid_zip):
     with pytest.raises(ValueError, match="Invalid competition ZIP"):
         CompetitionZip.from_dir(competition_with_invalid_zip)
+
+
+def test_competition_with_large_file():
+    competition_zip = CompetitionZip.from_dir(IRIS)
+    competition_submission_len = len(competition_zip.submission_pool.submissions)
+    competition_zip.generate_large_submissions(large_file_size=1)
+    assert (
+        len(competition_zip.submission_pool.submissions)
+        == competition_submission_len * 2
+    )
+    assert (
+        len(
+            [
+                sub
+                for sub in competition_zip.submission_pool.submissions
+                if sub.zip_path.name.endswith("_large_submit.zip")
+            ]
+        )
+        == competition_submission_len
+    )

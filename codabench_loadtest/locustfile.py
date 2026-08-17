@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from locust import events
-from locust.runners import MasterRunner, WorkerRunner
+from locust.runners import LocalRunner, MasterRunner, WorkerRunner
 
 from codabench_loadtest.models import CompetitionPool, UserPool
 from codabench_loadtest.scenarios.users import SmokeUser, SubmitterUser, UIUser
@@ -31,6 +31,12 @@ def _(parser):
         default=None,
         help="List of competition names to filter the competitions to be tested.",
     )
+    parser.add_argument(
+        "--large-file-size",
+        type=int,
+        default=0,
+        help="Size of large files for the load test in MB. If set, it will generate for each submission a large temporary file of this size.",
+    )
 
 
 def on_master_message(environment, msg, **kwargs):
@@ -41,6 +47,10 @@ def on_master_message(environment, msg, **kwargs):
     environment.competition_pool = CompetitionPool.model_validate(
         msg.data["competition_pool"]
     )
+    if environment.parsed_options.large_file_size > 0:
+        environment.competition_pool.generate_large_submissions(
+            large_file_size=environment.parsed_options.large_file_size,
+        )
 
 
 def on_worker_message(environment, msg, **kwargs):
@@ -67,6 +77,13 @@ def on_init(environment, **kwargs):
         environment.runner.register_message("worker_datasets_ids", on_worker_message)
     if isinstance(environment.runner, WorkerRunner):
         environment.runner.register_message("master_environment", on_master_message)
+    if (
+        isinstance(environment.runner, LocalRunner)
+        and environment.parsed_options.large_file_size > 0
+    ):
+        environment.competition_pool.generate_large_submissions(
+            large_file_size=environment.parsed_options.large_file_size,
+        )
 
 
 @events.test_start.add_listener
@@ -96,11 +113,8 @@ def on_test_start(environment, **kwargs):
             competition_id=competition.id, user_pool=user_pool
         )
 
-    environment.env_setup.dataset_ids.extend(
-        environment.env_setup.codabench_client.list_dataset_ids(
-            kind="competition_bundle"
-        )
-    )
+        environment.env_setup.dataset_ids.append(competition.id)
+
     if isinstance(environment.runner, MasterRunner):
         print(
             f"Sending message to workers: num_users={len(user_pool.users)}, num_competitions={len(environment.competition_pool.competitions)}"

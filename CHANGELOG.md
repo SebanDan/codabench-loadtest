@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v1.3.2 (2026-08-17)
+
+### Bug Fixes
+
+- Large file creation
+  ([`9090a75`](https://github.com/SebanDan/codabench-loadtest/commit/9090a75648a2d2f65ca9ed2dba56762bcc2218d7))
+
+- Large file creation
+  ([`5cfa235`](https://github.com/SebanDan/codabench-loadtest/commit/5cfa23556aa7f78a92f9c47f0b57d51922341ebc))
+
+- Large file creation
+  ([`a2f3dec`](https://github.com/SebanDan/codabench-loadtest/commit/a2f3deceba4965af82b5a5709b7ff74cf891300c))
+
+
 ## v1.3.1 (2026-08-14)
 
 ### Documentation

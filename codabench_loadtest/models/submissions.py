@@ -95,4 +95,6 @@ class SubmissionPool(BaseModel):
     def get_random_submission_zip(self) -> SubmissionZip:
         if not self.submissions:
             raise ValueError("Submission pool is empty")
-        return random.choice(self.submissions).model_copy(update={"is_temporary": False})
+        return random.choice(self.submissions).model_copy(
+            update={"is_temporary": False}
+        )

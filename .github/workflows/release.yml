@@ -18,8 +18,6 @@ jobs:
     name: release
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Action | Semantic Version Release
         id: release

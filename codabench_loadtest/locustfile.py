@@ -37,6 +37,11 @@ def _(parser):
         default=0,
         help="Size of large files for the load test in MB. If set, it will generate for each submission a large temporary file of this size.",
     )
+    parser.add_argument(
+        "--clear-env",
+        action="store_true",
+        help="Flag to clear the environment at the end of the test. If set, it will delete the created competitions and users after the test.",
+    )
 
 
 def on_master_message(environment, msg, **kwargs):
@@ -137,12 +142,14 @@ def on_test_stop_master(environment, **kwargs):
     """
     if isinstance(environment.runner, (WorkerRunner)):
         return
-    # Delete the competition first: its CASCADE FKs remove the participants and
-    # submissions that reference the users.
-    for competition in environment.competition_pool.competitions:
-        environment.env_setup.delete_competition(competition.id)
-    environment.env_setup.delete_users(environment.user_pool)
-    environment.env_setup.delete_datasets()
+
+    if environment.parsed_options.clear_env:
+        # Delete the competition first: its CASCADE FKs remove the participants and
+        # submissions that reference the users.
+        for competition in environment.competition_pool.competitions:
+            environment.env_setup.delete_competition(competition.id)
+        environment.env_setup.delete_users(environment.user_pool)
+        environment.env_setup.delete_datasets()
 
 
 @events.test_stop.add_listener

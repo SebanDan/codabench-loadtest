@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v1.3.3 (2026-08-28)
+
+### Bug Fixes
+
+- Clear env option flag
+  ([`b12548a`](https://github.com/SebanDan/codabench-loadtest/commit/b12548a78ffa23dd63cb4b0b30a651deccea2515))
+
+- Clear env option flag
+  ([`f02793d`](https://github.com/SebanDan/codabench-loadtest/commit/f02793d723a55ae6392ffd33bf87fceb83581823))
+
+
 ## v1.3.2 (2026-08-17)
 
 ### Bug Fixes
